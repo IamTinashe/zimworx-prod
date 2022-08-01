@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="multi_approval_view_form_inherit" model="ir.ui.view">
+        <field name="name">multi.approval.form</field>
+        <field name="model">multi.approval</field>
+        <field name="inherit_id" ref="multi_level_approval.multi_approval_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='type_id']" position="attributes">
+                <attribute name="domain">[('apply_for_model', '=', False)]</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
