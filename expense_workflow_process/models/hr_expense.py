@@ -46,13 +46,13 @@ class HrExpense(models.Model):
                                     'reported': [('readonly', False)], 'refused': [('readonly', False)]},
                             digits='Product Unit of Measure', default=1)
 
-    # def write(self, vals):
-    #     res = super(HrExpense, self).write(vals)
-    #     if vals.get('message_main_attachment_id'):
-    #         sheet = self._create_sheet_from_expenses()
-    #         sheet.action_submit_sheet()
-    #         sheet.approve_expense_sheets()
-    #     return res
+    def write(self, vals):
+        if vals.get('message_main_attachment_id'):
+            self.check_status()
+            sheet = self._create_sheet_from_expenses()
+            sheet.action_submit_sheet()
+            sheet.approve_expense_sheets()
+        return super(HrExpense, self).write(vals)
 
     def action_submit_expenses(self, **kwargs):
         """Send user corrected values to the ocr"""
