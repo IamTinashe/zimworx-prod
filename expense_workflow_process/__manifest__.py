@@ -10,7 +10,7 @@
     'author': 'Hyperthink Systems Kenya',
     'version': '14.0',
     'license': 'AGPL-3',
-    'depends': ['hr_expense', 'hr_expense_extract'],
+    'depends': ['hr_expense'],
     'data': [
         'views/hr_expense_view.xml',
     ],

@@ -46,37 +46,23 @@ class HrExpense(models.Model):
                                     'reported': [('readonly', False)], 'refused': [('readonly', False)]},
                             digits='Product Unit of Measure', default=1)
 
-    def write(self, vals):
-        if vals.get('message_main_attachment_id'):
-            self.check_status()
-            sheet = self._create_sheet_from_expenses()
-            sheet.action_submit_sheet()
-            sheet.approve_expense_sheets()
-        return super(HrExpense, self).write(vals)
+    # def write(self, vals):
+    #     if vals.get('message_main_attachment_id'):
+    #         self.check_status()
+    #         sheet = self._create_sheet_from_expenses()
+    #         sheet.action_submit_sheet()
+    #         sheet.approve_expense_sheets()
+    #     return super(HrExpense, self).write(vals)
 
-    def action_submit_expenses(self, **kwargs):
-        """Send user corrected values to the ocr"""
-        res = super(HrExpense, self).action_submit_expenses(**kwargs)
-
-        for expense in self.filtered(lambda x: x.extract_state == 'waiting_validation'):
-            endpoint = self.env['ir.config_parameter'].sudo().get_param(
-                'hr_expense_extract_endpoint', 'https://iap-extract.odoo.com') + '/iap/expense_extract/validate'
-
-            values = {
-                'total': expense.get_validation('total'),
-                'date': expense.get_validation('date'),
-                'description': expense.get_validation('description'),
-                'currency': expense.get_validation('currency'),
-                'bill_reference': expense.get_validation('bill_reference')
-            }
-            params = {
-                'document_id': expense.extract_remote_id,
-                'version': CLIENT_OCR_VERSION,
-                'values': values
-            }
-            try:
-                iap_tools.iap_jsonrpc(endpoint, params=params)
-                # expense.extract_state = 'done'
-            except AccessError:
-                pass
-        return res
+    def action_submit_expenses(self):
+        sheet = self._create_sheet_from_expenses()
+        sheet.action_submit_sheet()
+        sheet.approve_expense_sheets()
+        return {
+            'name': _('Expense Report'),
+            'type': 'ir.actions.act_window',
+            'view_mode': 'form',
+            'res_model': 'hr.expense.sheet',
+            'target': 'current',
+            'res_id': sheet.id,
+        }
