@@ -4,26 +4,29 @@
     <template id="customer_vendor_statement.statement_document">
         <t t-call="web.external_layout">
             <div class="page">
-                <t t-set="o" t-value="doc" />
+                <t t-set="o" t-value="doc"/>
                 <div class="oe_structure"/>
                 <div class="row text-right" id="informations" style="margin-bottom:40px;">
                     <div class="col-auto">
-                        <span t-field="o.name"/><br/>
-                        <span t-esc="o.street"/><br/>
+                        <span t-field="o.name"/>
+                        <br/>
+                        <span t-esc="o.street"/>
+                        <br/>
                         <span t-esc="o.street2"></span>
                         <span t-esc="o.city"></span>
-                        <span t-esc="o.zip"></span><br/>
+                        <span t-esc="o.zip"></span>
+                        <br/>
                         <span t-if="o.country_id" t-field="o.country_id"></span>
                     </div>
                 </div>
                 <div>
                     <t t-if="lines[o.id]">
                         <t t-foreach="lines[o.id]" t-as="currency">
-                            <br t-if="not currency_first" />
+                            <br t-if="not currency_first"/>
                             <table class="table table-condensed" style="border-collapse: collapse;">
                                 <thead>
                                     <tr>
-                                        <th class="text-center">Date</th>
+                                        <th class="text-left">Date</th>
                                         <th>Invoice Number</th>
                                         <!-- <th>Account</th>
                                         <th>Ref</th> -->
@@ -37,10 +40,10 @@
                                         </th>
                                         <th class="text-right">
                                             <t t-if="report_type == 'payable'">
-                                                 Invoices / Credit
+                                                Invoices / Credit
                                             </t>
                                             <t t-else="">
-                                               Payments/Credit
+                                                Payments/Credit
                                             </t>
                                         </th>
                                         <th class="text-right">Balance</th>
@@ -55,13 +58,19 @@
                                     </td>
                                     <!-- <td></td>
                                     <td></td> -->
-                                    <td></td>
-                                    <td></td>
+                                    <!--                                    <td></td>-->
+                                    <!--                                    <td></td>-->
                                     <td class="text-right" t-if="currency in balance_forward[o.id]">
-                                        <strong><span t-esc="'{:,}'.format(balance_forward[o.id][currency])" t-esc-options='{"widget": "monetary", "display_currency": "currency", "precision": 2}'/></strong>
+                                        <strong>
+                                            <span t-esc="'{0:,.2f}'.format(balance_forward[o.id][currency])"
+                                                  t-esc-options='{"widget": "monetary", "display_currency": "currency", "precision": 2}'/>
+                                        </strong>
                                     </td>
                                     <td class="text-right" t-if="currency not in balance_forward[o.id]">
-                                        <strong><span t-esc="0.0" t-esc-options='{"widget": "monetary", "display_currency": "currency", "precision": 2}'/></strong>
+                                        <strong>
+                                            <span t-esc="'{0:,.2f}'.format(0.0)"
+                                                  t-esc-options='{"widget": "monetary", "display_currency": "currency", "precision": 2}'/>
+                                        </strong>
                                     </td>
                                 </tr>
                                 <t t-set="debit_total" t-value="0.00"/>
@@ -80,15 +89,18 @@
                                         <td>
                                            <span t-esc="line['ref']"/>
                                         </td> -->
-<!--                                        <t t-esc="'{0:,.0f}'.format(int(line['my_value'])).replace(',', '.')" />-->
+                                        <!--                                        <t t-esc="'{0:,.0f}'.format(int(line['my_value'])).replace(',', '.')" />-->
                                         <td class="text-right">
-                                            <span t-esc="'{:,}'.format(line['debit'])" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
+                                            <span t-esc="'{0:,.2f}'.format(line['debit'])"
+                                                  t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
                                         </td>
                                         <td class="text-right">
-                                            <span t-esc="'{:,}'.format(line['credit'])" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
+                                            <span t-esc="'{0:,.2f}'.format(line['credit'])"
+                                                  t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
                                         </td>
                                         <td class="text-right">
-                                            <span t-esc="'{:,}'.format(line['balance'])" t-esc-options='{"widget": "monetary", "display_currency": "currency", "precision": 2}'/>
+                                            <span t-esc="'{0:,.2f}'.format(line['balance'])"
+                                                  t-esc-options='{"widget": "monetary", "display_currency": "currency", "precision": 2}'/>
                                         </td>
                                     </t>
                                     <t t-if="line['blocked']">
@@ -104,14 +116,17 @@
                                         <td style="background-color: grey;">
                                             <span t-esc="line['ref']"/>
                                         </td> -->
-                                        <td class="text-right" style="background-color: grey;">
-                                            <span t-esc="'{:,}'.format(line['debit'])" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
+                                        <td class="text-center" style="background-color: grey;">
+                                            <span t-esc="'{0:,.2f}'.format(line['debit'])"
+                                                  t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
                                         </td>
-                                        <td class="text-right" style="background-color: grey;">
-                                            <span t-esc="'{:,}'.format(line['credit'])" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
+                                        <td class="text-center" style="background-color: grey;">
+                                            <span t-esc="'{0:,.2f}'.format(line['credit'])"
+                                                  t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
                                         </td>
-                                        <td class="text-right" style="background-color: grey;">
-                                            <span t-esc="'{:,}'.format(line['balance'])" t-esc-options='{"widget": "monetary", "display_currency": "currency", "precision": 2}'/>
+                                        <td class="text-center" style="background-color: grey;">
+                                            <span t-esc="'{0:,.2f}'.format(line['balance'])"
+                                                  t-esc-options='{"widget": "monetary", "display_currency": "currency", "precision": 2}'/>
                                         </td>
                                     </t>
                                     <t t-set="debit_total" t-value="debit_total + line['debit']"/>
@@ -129,7 +144,10 @@
                                     <td></td>
                                     <td></td>
                                     <td class="text-right">
-                                        <strong><span t-esc="'{:,}'.format(amount_due[o.id][currency])" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/></strong>
+                                        <strong>
+                                            <span t-esc="'{0:,.2f}'.format(amount_due[o.id][currency])"
+                                                  t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
+                                        </strong>
                                     </td>
                                 </tr>
                                 <tr>
@@ -138,13 +156,16 @@
                                     <!-- <th></th>
                                     <th></th> -->
                                     <th class="text-right">
-                                        <t t-esc="'{:,}'.format(debit_total)" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
+                                        <t t-esc="'{0:,.2f}'.format(debit_total)"
+                                           t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
                                     </th>
                                     <th class="text-right">
-                                        <t t-esc="'{:,}'.format(credit_total)" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
+                                        <t t-esc="'{0:,.2f}'.format(credit_total)"
+                                           t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
                                     </th>
                                     <th class="text-right">
-                                        <span t-esc="'{:,}'.format(amount_due[o.id][currency])" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
+                                        <span t-esc="'{0:,.2f}'.format(amount_due[o.id][currency])"
+                                              t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
                                     </th>
                                 </tr>
                                 <tr>
@@ -154,7 +175,8 @@
                                     <th style="border:0;"></th> -->
                                     <th style="border-top:1px solid black;" colspan="2">Total Amount Overdue:</th>
                                     <th style="border-top:1px solid black;" class="text-right">
-                                        <span t-esc="'{:,}'.format(total_overdues[o.id][currency])" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
+                                        <span t-esc="'{0:,.2f}'.format(total_overdues[o.id][currency])"
+                                              t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
                                     </th>
                                 </tr>
                                 <tr>
@@ -162,9 +184,12 @@
                                     <th style="border:0;"></th>
                                     <!-- <th style="border:0;"></th>
                                     <th style="border:0;"></th> -->
-                                    <th style="border-top:1px solid black;" colspan="2"><strong>Balance Due:</strong></th>
+                                    <th style="border-top:1px solid black;" colspan="2">
+                                        <strong>Balance Due:</strong>
+                                    </th>
                                     <th style="border-top:1px solid black;" class="text-right">
-                                        <span t-esc="'{:,}'.format(amount_due[o.id][currency])" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
+                                        <span t-esc="'{0:,.2f}'.format(amount_due[o.id][currency])"
+                                              t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
                                     </th>
                                 </tr>
                             </table>
@@ -180,36 +205,46 @@
                                 </thead>
                                 <tr t-if="currency in buckets[o.id]">
                                     <td class="text-right">
-                                        <span t-esc="'{:,}'.format(buckets[o.id][currency]['b_1_30'])" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
+                                        <span t-esc="'{0:,.2f}'.format(buckets[o.id][currency]['b_1_30'])"
+                                              t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
                                     </td>
                                     <td class="text-right">
-                                        <span t-esc="'{:,}'.format(buckets[o.id][currency]['b_30_60'])" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
+                                        <span t-esc="'{0:,.2f}'.format(buckets[o.id][currency]['b_30_60'])"
+                                              t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
                                     </td>
                                     <td class="text-right">
-                                        <span t-esc="'{:,}'.format(buckets[o.id][currency]['b_60_90'])" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
+                                        <span t-esc="'{0:,.2f}'.format(buckets[o.id][currency]['b_60_90'])"
+                                              t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
                                     </td>
                                     <td class="text-right">
-                                        <span t-esc="'{:,}'.format(buckets[o.id][currency]['b_over_90'])" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
+                                        <span t-esc="'{0:,.2f}'.format(buckets[o.id][currency]['b_over_90'])"
+                                              t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
                                     </td>
                                     <td class="text-right">
-                                        <span t-esc="'{:,}'.format(buckets[o.id][currency]['balance'])" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
+                                        <span t-esc="'{0:,.2f}'.format(buckets[o.id][currency]['balance'])"
+                                              t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
                                     </td>
                                 </tr>
                                 <tr t-if="currency not in buckets[o.id]">
                                     <td class="text-right">
-                                        <span t-esc="0.0" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
+                                        <span t-esc="0.0"
+                                              t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
                                     </td>
                                     <td class="text-right">
-                                        <span t-esc="0.0" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
+                                        <span t-esc="'{0:,.2f}'.format(0.0)"
+                                              t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
                                     </td>
                                     <td class="text-right">
-                                        <span t-esc="0.0" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
+                                        <span t-esc="'{0:,.2f}'.format(0.0)"
+                                              t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
                                     </td>
                                     <td class="text-right">
-                                        <span t-esc="0.0" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
+                                        <span t-esc="'{0:,.2f}'.format(0.0)"
+                                              t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
                                     </td>
                                     <td class="text-right">
-                                        <span t-esc="0.0" t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
+                                        <span t-esc="'{0:,.2f}'.format(0.0)"
+                                              t-esc-options='{"widget": "monetary", "display_currency": "currency"}'/>
                                     </td>
                                 </tr>
                             </table>
@@ -220,7 +255,7 @@
                     </p>
                 </div>
             </div>
-       </t>
+        </t>
     </template>
 
     <template id="statement">
@@ -234,12 +269,12 @@
     </template>
 
     <report id="action_print_customer_vendor_statement"
-        model="res.partner"
-        report_type="qweb-pdf"
-        menu="False"
-        string="Customer / Vendor Statement"
-        name="customer_vendor_statement.statement"
-        file="customer_vendor_statement.statement"
+            model="res.partner"
+            report_type="qweb-pdf"
+            menu="False"
+            string="Customer / Vendor Statement"
+            name="customer_vendor_statement.statement"
+            file="customer_vendor_statement.statement"
     />
 
 </odoo>
