@@ -1,5 +1,5 @@
 {
-    'name': 'Zimbojobs automation',
+    'name': 'Zimbojobs Automation',
     'version': '1.0.0',
     'summary': 'Zimbojobs Customization',
     'description': 'Zimbojobs Customization',
