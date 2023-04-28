@@ -4,7 +4,7 @@
     'summary': 'Zimbojobs Customization',
     'description': 'Zimbojobs Customization',
     'summary': 'Zimbojobs Customization',
-    'category': 'Customization',
+    'category': 'Customizations',
     'author': 'Tinashe Zvihwati',
     'website': 'https://zimworx.com',
     'depends': ['hr'],
