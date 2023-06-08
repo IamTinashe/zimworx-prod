@@ -102,11 +102,11 @@ class ScheduleActivityCustomHistory(models.Model):
         string='Next activities available',
         help='Technical field for UX purpose'
     )
-    force_next = fields.Boolean(
-        related='activity_type_id.force_next', 
-        string="Trigger Next Activity",
-        readonly=True
-    )
+#     force_next = fields.Boolean(
+#         related='activity_type_id.force_next', 
+#         string="Trigger Next Activity",
+#         readonly=True
+#     )
     can_write = fields.Boolean(
         string="Can Write",
         help='Technical field to hide buttons if the current user has no access.'
@@ -127,7 +127,7 @@ class MailActivity(models.Model):
         vals = self.read(['res_model_id','res_model','res_id','res_name','supervisor_user_id','activity_type_id',
             'activity_category','activity_decoration','summary', 'note', 'date_deadline',
             'automated','user_id','state','recommended_activity_type_id','previous_activity_type_id',
-            'has_recommended_activities','force_next','can_write'])[0]
+            'has_recommended_activities'','can_write'])[0]
         vals.update({
             'res_model_id': vals['res_model_id'][0],
             'activity_type_id': vals['activity_type_id'][0] if vals['activity_type_id'] else False,
