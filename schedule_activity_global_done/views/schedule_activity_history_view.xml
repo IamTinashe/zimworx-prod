@@ -10,7 +10,6 @@
                 <sheet>
                     <group>
                         <group>
-                            <field name="activity_type_id"/>
                             <field name="summary"/>
                             <field name="supervisor_user_id"/>
                         </group>
