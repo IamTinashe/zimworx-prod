@@ -102,11 +102,6 @@ class ScheduleActivityCustomHistory(models.Model):
         string='Next activities available',
         help='Technical field for UX purpose'
     )
-    force_next = fields.Boolean(
-        related='activity_type_id.force_next', 
-        string="Trigger Next Activity",
-        readonly=True
-    )
     can_write = fields.Boolean(
         string="Can Write",
         help='Technical field to hide buttons if the current user has no access.'
