@@ -30,7 +30,7 @@ class CustomerVendorStatement(models.AbstractModel):
             END as credit
             FROM account_move_line l
             JOIN account_move m ON (l.move_id = m.id)
-            WHERE l.partner_id IN (%s) AND l.account_internal_type = 'receivable'
+            WHERE l.partner_id IN (%s) AND l.account_type = 'receivable'
                                 AND l.date <= '%s' AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.amount_currency,
                                 l.company_id
@@ -49,7 +49,7 @@ class CustomerVendorStatement(models.AbstractModel):
             END as credit
             FROM account_move_line l
             JOIN account_move m ON (l.move_id = m.id)
-            WHERE l.partner_id IN (%s) AND l.account_internal_type = 'payable'
+            WHERE l.partner_id IN (%s) AND l.account_type = 'payable'
                                 AND l.date <= '%s' AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.amount_currency,
                                 l.company_id
@@ -68,7 +68,7 @@ class CustomerVendorStatement(models.AbstractModel):
             END as credit
             FROM account_move_line l
             JOIN account_move m ON (l.move_id = m.id)
-            WHERE l.partner_id IN (%s) AND (l.account_internal_type = 'payable' OR l.account_internal_type = 'receivable')
+            WHERE l.partner_id IN (%s) AND (l.account_type = 'payable' OR l.account_type = 'receivable')
                                 AND l.date <= '%s' AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.amount_currency,
                                 l.company_id
@@ -162,7 +162,7 @@ class CustomerVendorStatement(models.AbstractModel):
             FROM account_move_line l
             JOIN account_move m ON (l.move_id = m.id)
             JOIN account_account aa ON (l.account_id = aa.id)
-            WHERE l.partner_id IN (%s) AND l.account_internal_type = 'receivable'
+            WHERE l.partner_id IN (%s) AND l.account_type = 'receivable'
                                 AND '%s' < l.date AND l.date <= '%s'
             GROUP BY l.partner_id, m.name, aa.id, l.date, l.date_maturity, l.name,
                                 l.ref, l.blocked, l.currency_id,
@@ -188,7 +188,7 @@ class CustomerVendorStatement(models.AbstractModel):
             FROM account_move_line l
             JOIN account_move m ON (l.move_id = m.id)
             JOIN account_account aa ON (l.account_id = aa.id)
-            WHERE l.partner_id IN (%s) AND l.account_internal_type = 'payable'
+            WHERE l.partner_id IN (%s) AND l.account_type = 'payable'
                                 AND '%s' < l.date AND l.date <= '%s'
             GROUP BY l.partner_id, m.name, aa.id, l.date, l.date_maturity, l.name,
                                 l.ref, l.blocked, l.currency_id,
@@ -214,7 +214,7 @@ class CustomerVendorStatement(models.AbstractModel):
             FROM account_move_line l
             JOIN account_move m ON (l.move_id = m.id)
             JOIN account_account aa ON (l.account_id = aa.id)
-            WHERE l.partner_id IN (%s) AND (l.account_internal_type = 'payable' OR l.account_internal_type = 'receivable') 
+            WHERE l.partner_id IN (%s) AND (l.account_type = 'payable' OR l.account_type = 'receivable') 
                                 AND '%s' < l.date AND l.date <= '%s'
             GROUP BY l.partner_id, m.name, aa.id, l.date, l.date_maturity, l.name,
                                 l.ref, l.blocked, l.currency_id,
@@ -339,7 +339,7 @@ class CustomerVendorStatement(models.AbstractModel):
                 WHERE '%s' <= l2.date
                 AND l2.date <= '%s'
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND l.account_internal_type = 'receivable'
+            WHERE l.partner_id IN (%s) AND l.account_type = 'receivable'
                 AND '%s' <= l.date AND l.date <= '%s' AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
                                 l.amount_currency, l.balance, l.move_id,
@@ -377,7 +377,7 @@ class CustomerVendorStatement(models.AbstractModel):
                 WHERE '%s' <= l2.date
                 AND l2.date <= '%s'
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND l.account_internal_type = 'payable'
+            WHERE l.partner_id IN (%s) AND l.account_type = 'payable'
                 AND '%s' <= l.date AND l.date <= '%s' AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
                                 l.amount_currency, l.balance, l.move_id,
@@ -415,7 +415,7 @@ class CustomerVendorStatement(models.AbstractModel):
                 WHERE '%s' <= l2.date
                 AND l2.date <= '%s'
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND (l.account_internal_type = 'payable' OR l.account_internal_type = 'receivable') 
+            WHERE l.partner_id IN (%s) AND (l.account_type = 'payable' OR l.account_type = 'receivable') 
                 AND '%s' <= l.date AND l.date <= '%s' AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
                                 l.amount_currency, l.balance, l.move_id,
@@ -451,7 +451,7 @@ class CustomerVendorStatement(models.AbstractModel):
                 ON pr.debit_move_id = l2.id
                 WHERE '%s' <= l2.date
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND l.account_internal_type = 'receivable' 
+            WHERE l.partner_id IN (%s) AND l.account_type = 'receivable' 
                 AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
                                 l.amount_currency, l.balance, l.move_id,
@@ -487,7 +487,7 @@ class CustomerVendorStatement(models.AbstractModel):
                 ON pr.debit_move_id = l2.id
                 WHERE '%s' <= l2.date
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND l.account_internal_type = 'payable' 
+            WHERE l.partner_id IN (%s) AND l.account_type = 'payable' 
                 AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
                                 l.amount_currency, l.balance, l.move_id,
@@ -523,7 +523,7 @@ class CustomerVendorStatement(models.AbstractModel):
                 ON pr.debit_move_id = l2.id
                 WHERE '%s' <= l2.date
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND (l.account_internal_type = 'payable' OR l.account_internal_type = 'receivable') 
+            WHERE l.partner_id IN (%s) AND (l.account_type = 'payable' OR l.account_type = 'receivable') 
                 AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
                                 l.amount_currency, l.balance, l.move_id,
