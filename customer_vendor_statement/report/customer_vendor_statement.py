@@ -432,40 +432,41 @@ class CustomerVendorStatement(models.AbstractModel):
         """ % (date_start, date_end, date_start, date_end, partners, date_start, date_end)
 
     def _show_overdue_sql_q1(self, partners, date_end):
-        return """
+        return f"""
             SELECT l.partner_id, l.currency_id, l.company_id, l.move_id,
             CASE WHEN l.balance > 0.0
-                THEN l.balance - sum(coalesce(pd.amount, 0.0))
-                ELSE l.balance + sum(coalesce(pc.amount, 0.0))
+                THEN l.balance - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.balance + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due,
             CASE WHEN l.balance > 0.0
-                THEN l.amount_currency - sum(coalesce(pd.amount, 0.0))
-                ELSE l.amount_currency + sum(coalesce(pc.amount, 0.0))
+                THEN l.amount_currency - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.amount_currency + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due_currency,
             CASE WHEN l.date_maturity is null
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
             FROM account_move_line l
-            JOIN account_move m ON (l.move_id = m.id)
-            LEFT JOIN (SELECT pr.*
+            JOIN account_move m ON l.move_id = m.id
+            JOIN account_account a ON l.account_id = a.id
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.credit_move_id = l2.id
-                WHERE '%s' <= l2.date
+                INNER JOIN account_move_line l2 ON pr.credit_move_id = l2.id
+                WHERE '{date_end}' <= l2.date
             ) as pd ON pd.debit_move_id = l.id
-            LEFT JOIN (SELECT pr.*
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.debit_move_id = l2.id
-                WHERE '%s' <= l2.date
+                INNER JOIN account_move_line l2 ON pr.debit_move_id = l2.id
+                WHERE '{date_end}' <= l2.date
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND l.account_internal_type = 'receivable' 
+            WHERE l.partner_id IN ({partners}) AND a.account_type = 'receivable'
                 AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
-                                l.amount_currency, l.balance, l.move_id,
-                                l.company_id
-        """ % (date_end, date_end, partners)
+                        l.amount_currency, l.balance, l.move_id,
+                        l.company_id
+        """
 
     def _show_overdue_sql_q1_payable(self, partners, date_end):
         return """
@@ -582,20 +583,20 @@ class CustomerVendorStatement(models.AbstractModel):
                minus_60, minus_90, minus_90)
 
     def _show_overdue_sql_q2(self, date_end):
-        return """
+        return f"""
             SELECT partner_id, currency_id, date_maturity, open_due,
                             open_due_currency, move_id, company_id,
             CASE
-                WHEN '%s' <= date_maturity AND currency_id is null
+                WHEN '{date_end}' <= date_maturity AND currency_id is null
                                 THEN open_due
-                WHEN '%s' <= date_maturity AND currency_id is not null
+                WHEN '{date_end}' <= date_maturity AND currency_id is not null
                                 THEN open_due_currency
                 ELSE 0.0
             END as current
             FROM Q1
             GROUP BY partner_id, currency_id, date_maturity, open_due,
                                 open_due_currency, move_id, company_id
-        """ % (date_end, date_end)
+        """
 
     def _show_buckets_sql_q2_receivable_and_payable(self,
         today, minus_30, minus_60, minus_90):
@@ -710,13 +711,13 @@ class CustomerVendorStatement(models.AbstractModel):
         """ % company_id
 
     def _show_overdue_sql_q3(self, company_id):
-        return """
+        return f"""
             SELECT Q2.partner_id, current,
             COALESCE(Q2.currency_id, c.currency_id) AS currency_id
             FROM Q2
-            JOIN res_company c ON (c.id = Q2.company_id)
-            WHERE c.id = %s
-        """ % company_id
+            JOIN res_company c ON c.id = Q2.company_id
+            WHERE c.id = {company_id}
+        """
 
     def _show_buckets_sql_q4(self):
         return """
