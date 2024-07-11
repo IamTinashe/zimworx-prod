@@ -45,7 +45,7 @@ class CustomerVendorStatement(models.AbstractModel):
             JOIN account_account a ON (l.account_id = a.id)
             WHERE l.partner_id IN (%s) AND a.account_type = 'receivable'
                                 AND l.date <= '%s' AND not l.blocked
-            GROUP BY l.partner_id, l.currency_id, l.company_id
+            GROUP BY l.partner_id, l.currency_id, l.company_id, l.amount_currency
         """ % (partners, date_start)
 
     def _initial_balance_sql_q2(self, company_id):
