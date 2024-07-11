@@ -30,10 +30,10 @@ class CustomervendorStatementWizard(models.TransientModel):
     )
     filter_partners_non_due = fields.Boolean(
         string='Don\'t show partners with no due entries', default=False)
-    report_type = fields.Selection([('receivable', 'Receivable'),
-                                    ('payable', 'Payable'),
+    report_type = fields.Selection([('income', 'Receivable'),
+                                    ('expense', 'Payable'),
                                     ('receivable_and_payable', 'Receivable and Payable')],
-                                   'Report Type', default="receivable", required=True
+                                   'Report Type', default="income", required=True
                                    )
 
 
