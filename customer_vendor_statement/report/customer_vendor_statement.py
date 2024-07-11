@@ -909,12 +909,20 @@ class CustomerVendorStatement(models.AbstractModel):
         date_end = data['date_end']
         today = fields.Date.today()
 
+        # Initialize dictionaries
         overdues_to_display = {}
         balance_start_to_display, buckets_to_display = {}, {}
         lines_to_display, amount_due = {}, {}
         currency_to_display = {}
         today_display, date_start_display, date_end_display = {}, {}, {}
 
+        # Initialize variables to avoid UnboundLocalError
+        balance_start = {}
+        lines = {}
+        overdues = {}
+        buckets = {}
+
+        # Assign values based on report_type
         if data['report_type'] == 'income':
             balance_start = self._get_account_initial_balance(company_id, partner_ids, date_start)
             lines = self._get_account_display_lines(company_id, partner_ids, date_start, date_end)
@@ -948,11 +956,11 @@ class CustomerVendorStatement(models.AbstractModel):
             currency_to_display[partner_id], overdues_to_display[partner_id] = {}, {}
             balance_start_to_display[partner_id] = {}
 
-            for line in balance_start[partner_id]:
+            for line in balance_start.get(partner_id, []):
                 currency = self.env['res.currency'].browse(line['currency_id'])
                 balance_start_to_display[partner_id][currency] = line['balance']
 
-            for line in lines[partner_id]:
+            for line in lines.get(partner_id, []):
                 currency = self.env['res.currency'].browse(line['currency_id'])
                 if currency not in lines_to_display[partner_id]:
                     lines_to_display[partner_id][currency] = []
@@ -965,13 +973,13 @@ class CustomerVendorStatement(models.AbstractModel):
                 line['date_maturity'] = self._format_date_to_partner_lang(line['date_maturity'], partner_id)
                 lines_to_display[partner_id][currency].append(line)
 
-            for line in overdues[partner_id]:
+            for line in overdues.get(partner_id, []):
                 currency = self.env['res.currency'].browse(line['currency_id'])
                 overdues_to_display[partner_id][currency] = line['current']
 
             if data['show_aging_buckets']:
                 buckets_to_display[partner_id] = {}
-                for line in buckets[partner_id]:
+                for line in buckets.get(partner_id, []):
                     currency = self.env['res.currency'].browse(line['currency_id'])
                     if currency not in buckets_to_display[partner_id]:
                         buckets_to_display[partner_id][currency] = []
