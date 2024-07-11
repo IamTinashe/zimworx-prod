@@ -28,12 +28,12 @@ class CustomerVendorStatement(models.AbstractModel):
                 THEN sum(l.amount_currency * (-1))
                 ELSE sum(l.credit)
             END as credit
-            FROM account_account l
+            FROM account_move_line l
             JOIN account_move m ON (l.move_id = m.id)
-            WHERE l.partner_id IN (%s) AND l.account_type = 'receivable'
+            JOIN account_account a ON (l.account_id = a.id)
+            WHERE l.partner_id IN (%s) AND a.account_type = 'receivable'
                                 AND l.date <= '%s' AND not l.blocked
-            GROUP BY l.partner_id, l.currency_id, l.amount_currency,
-                                l.company_id
+            GROUP BY l.partner_id, l.currency_id, l.company_id
         """ % (partners, date_start)
 
     def _initial_balance_sql_q1_payable(self, partners, date_start):
@@ -47,9 +47,9 @@ class CustomerVendorStatement(models.AbstractModel):
                 THEN sum(l.amount_currency * (-1))
                 ELSE sum(l.credit)
             END as credit
-            FROM account_account l
+            FROM account_move_line l
             JOIN account_move m ON (l.move_id = m.id)
-            WHERE l.partner_id IN (%s) AND l.account_type = 'payable'
+            WHERE l.partner_id IN (%s) AND l.account_internal_type = 'payable'
                                 AND l.date <= '%s' AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.amount_currency,
                                 l.company_id
@@ -66,9 +66,9 @@ class CustomerVendorStatement(models.AbstractModel):
                 THEN sum(l.amount_currency * (-1))
                 ELSE sum(l.credit)
             END as credit
-            FROM account_account l
+            FROM account_move_line l
             JOIN account_move m ON (l.move_id = m.id)
-            WHERE l.partner_id IN (%s) AND (l.account_type = 'payable' OR l.account_type = 'receivable')
+            WHERE l.partner_id IN (%s) AND (l.account_internal_type = 'payable' OR l.account_internal_type = 'receivable')
                                 AND l.date <= '%s' AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.amount_currency,
                                 l.company_id
@@ -159,10 +159,10 @@ class CustomerVendorStatement(models.AbstractModel):
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
-            FROM account_account l
+            FROM account_move_line l
             JOIN account_move m ON (l.move_id = m.id)
             JOIN account_account aa ON (l.account_id = aa.id)
-            WHERE l.partner_id IN (%s) AND l.account_type = 'receivable'
+            WHERE l.partner_id IN (%s) AND l.account_internal_type = 'receivable'
                                 AND '%s' < l.date AND l.date <= '%s'
             GROUP BY l.partner_id, m.name, aa.id, l.date, l.date_maturity, l.name,
                                 l.ref, l.blocked, l.currency_id,
@@ -185,10 +185,10 @@ class CustomerVendorStatement(models.AbstractModel):
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
-            FROM account_account l
+            FROM account_move_line l
             JOIN account_move m ON (l.move_id = m.id)
             JOIN account_account aa ON (l.account_id = aa.id)
-            WHERE l.partner_id IN (%s) AND l.account_type = 'payable'
+            WHERE l.partner_id IN (%s) AND l.account_internal_type = 'payable'
                                 AND '%s' < l.date AND l.date <= '%s'
             GROUP BY l.partner_id, m.name, aa.id, l.date, l.date_maturity, l.name,
                                 l.ref, l.blocked, l.currency_id,
@@ -211,10 +211,10 @@ class CustomerVendorStatement(models.AbstractModel):
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
-            FROM account_account l
+            FROM account_move_line l
             JOIN account_move m ON (l.move_id = m.id)
             JOIN account_account aa ON (l.account_id = aa.id)
-            WHERE l.partner_id IN (%s) AND (l.account_type = 'payable' OR l.account_type = 'receivable') 
+            WHERE l.partner_id IN (%s) AND (l.account_internal_type = 'payable' OR l.account_internal_type = 'receivable') 
                                 AND '%s' < l.date AND l.date <= '%s'
             GROUP BY l.partner_id, m.name, aa.id, l.date, l.date_maturity, l.name,
                                 l.ref, l.blocked, l.currency_id,
@@ -323,23 +323,23 @@ class CustomerVendorStatement(models.AbstractModel):
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
-            FROM account_account l
+            FROM account_move_line l
             JOIN account_move m ON (l.move_id = m.id)
             LEFT JOIN (SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_account l2
+                INNER JOIN account_move_line l2
                 ON pr.credit_move_id = l2.id
                 WHERE '%s' <= l2.date
                 AND l2.date <= '%s'
             ) as pd ON pd.debit_move_id = l.id
             LEFT JOIN (SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_account l2
+                INNER JOIN account_move_line l2
                 ON pr.debit_move_id = l2.id
                 WHERE '%s' <= l2.date
                 AND l2.date <= '%s'
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND l.account_type = 'receivable'
+            WHERE l.partner_id IN (%s) AND l.account_internal_type = 'receivable'
                 AND '%s' <= l.date AND l.date <= '%s' AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
                                 l.amount_currency, l.balance, l.move_id,
@@ -361,23 +361,23 @@ class CustomerVendorStatement(models.AbstractModel):
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
-            FROM account_account l
+            FROM account_move_line l
             JOIN account_move m ON (l.move_id = m.id)
             LEFT JOIN (SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_account l2
+                INNER JOIN account_move_line l2
                 ON pr.credit_move_id = l2.id
                 WHERE '%s' <= l2.date
                 AND l2.date <= '%s'
             ) as pd ON pd.debit_move_id = l.id
             LEFT JOIN (SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_account l2
+                INNER JOIN account_move_line l2
                 ON pr.debit_move_id = l2.id
                 WHERE '%s' <= l2.date
                 AND l2.date <= '%s'
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND l.account_type = 'payable'
+            WHERE l.partner_id IN (%s) AND l.account_internal_type = 'payable'
                 AND '%s' <= l.date AND l.date <= '%s' AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
                                 l.amount_currency, l.balance, l.move_id,
@@ -399,23 +399,23 @@ class CustomerVendorStatement(models.AbstractModel):
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
-            FROM account_account l
+            FROM account_move_line l
             JOIN account_move m ON (l.move_id = m.id)
             LEFT JOIN (SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_account l2
+                INNER JOIN account_move_line l2
                 ON pr.credit_move_id = l2.id
                 WHERE '%s' <= l2.date
                 AND l2.date <= '%s'
             ) as pd ON pd.debit_move_id = l.id
             LEFT JOIN (SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_account l2
+                INNER JOIN account_move_line l2
                 ON pr.debit_move_id = l2.id
                 WHERE '%s' <= l2.date
                 AND l2.date <= '%s'
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND (l.account_type = 'payable' OR l.account_type = 'receivable') 
+            WHERE l.partner_id IN (%s) AND (l.account_internal_type = 'payable' OR l.account_internal_type = 'receivable') 
                 AND '%s' <= l.date AND l.date <= '%s' AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
                                 l.amount_currency, l.balance, l.move_id,
@@ -437,21 +437,21 @@ class CustomerVendorStatement(models.AbstractModel):
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
-            FROM account_account l
+            FROM account_move_line l
             JOIN account_move m ON (l.move_id = m.id)
             LEFT JOIN (SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_account l2
+                INNER JOIN account_move_line l2
                 ON pr.credit_move_id = l2.id
                 WHERE '%s' <= l2.date
             ) as pd ON pd.debit_move_id = l.id
             LEFT JOIN (SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_account l2
+                INNER JOIN account_move_line l2
                 ON pr.debit_move_id = l2.id
                 WHERE '%s' <= l2.date
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND l.account_type = 'receivable' 
+            WHERE l.partner_id IN (%s) AND l.account_internal_type = 'receivable' 
                 AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
                                 l.amount_currency, l.balance, l.move_id,
@@ -473,21 +473,21 @@ class CustomerVendorStatement(models.AbstractModel):
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
-            FROM account_account l
+            FROM account_move_line l
             JOIN account_move m ON (l.move_id = m.id)
             LEFT JOIN (SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_account l2
+                INNER JOIN account_move_line l2
                 ON pr.credit_move_id = l2.id
                 WHERE '%s' <= l2.date
             ) as pd ON pd.debit_move_id = l.id
             LEFT JOIN (SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_account l2
+                INNER JOIN account_move_line l2
                 ON pr.debit_move_id = l2.id
                 WHERE '%s' <= l2.date
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND l.account_type = 'payable' 
+            WHERE l.partner_id IN (%s) AND l.account_internal_type = 'payable' 
                 AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
                                 l.amount_currency, l.balance, l.move_id,
@@ -509,21 +509,21 @@ class CustomerVendorStatement(models.AbstractModel):
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
-            FROM account_account l
+            FROM account_move_line l
             JOIN account_move m ON (l.move_id = m.id)
             LEFT JOIN (SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_account l2
+                INNER JOIN account_move_line l2
                 ON pr.credit_move_id = l2.id
                 WHERE '%s' <= l2.date
             ) as pd ON pd.debit_move_id = l.id
             LEFT JOIN (SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_account l2
+                INNER JOIN account_move_line l2
                 ON pr.debit_move_id = l2.id
                 WHERE '%s' <= l2.date
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND (l.account_type = 'payable' OR l.account_type = 'receivable') 
+            WHERE l.partner_id IN (%s) AND (l.account_internal_type = 'payable' OR l.account_internal_type = 'receivable') 
                 AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
                                 l.amount_currency, l.balance, l.move_id,
