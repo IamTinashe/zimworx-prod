@@ -152,16 +152,16 @@ class CustomerVendorStatement(models.AbstractModel):
         return res
 
     def _display_lines_sql_q1(self, partners, date_start, date_end):
-        return """
+        return f"""
             SELECT m.name AS move_id, aa.code AS account_id, l.partner_id, l.date, l.name,
-                                l.ref, l.blocked, l.currency_id, l.company_id,
+                   l.ref, l.blocked, l.currency_id, l.company_id,
             CASE WHEN (l.currency_id is not null AND l.amount_currency > 0.0)
-                THEN sum(l.amount_currency)
-                ELSE sum(l.debit)
+                THEN SUM(l.amount_currency)
+                ELSE SUM(l.debit)
             END as debit,
             CASE WHEN (l.currency_id is not null AND l.amount_currency < 0.0)
-                THEN sum(l.amount_currency * (-1))
-                ELSE sum(l.credit)
+                THEN SUM(l.amount_currency * (-1))
+                ELSE SUM(l.credit)
             END as credit,
             CASE WHEN l.date_maturity is null
                 THEN l.date
@@ -170,12 +170,11 @@ class CustomerVendorStatement(models.AbstractModel):
             FROM account_move_line l
             JOIN account_move m ON (l.move_id = m.id)
             JOIN account_account aa ON (l.account_id = aa.id)
-            WHERE l.partner_id IN (%s) AND l.account_internal_type = 'receivable'
-                                AND '%s' < l.date AND l.date <= '%s'
-            GROUP BY l.partner_id, m.name, aa.id, l.date, l.date_maturity, l.name,
-                                l.ref, l.blocked, l.currency_id,
-                                l.amount_currency, l.company_id
-        """ % (partners, date_start, date_end)
+            WHERE l.partner_id IN ({partners}) AND aa.account_type = 'receivable'
+                  AND '{date_start}' <= l.date AND l.date <= '{date_end}'
+            GROUP BY l.partner_id, m.name, aa.code, l.date, l.date_maturity, l.name,
+                     l.ref, l.blocked, l.currency_id, l.amount_currency, l.company_id
+        """
 
     def _display_lines_sql_q1_payable(self, partners, date_start, date_end):
         return """
@@ -259,21 +258,23 @@ class CustomerVendorStatement(models.AbstractModel):
             WHERE c.id = %s
         """ % company_id
 
-    def _get_account_display_lines(self, company_id, partner_ids, date_start,
-                                   date_end):
+    def _get_account_display_lines(self, company_id, partner_ids, date_start, date_end):
         res = dict(map(lambda x: (x, []), partner_ids))
         partners = ', '.join([str(i) for i in partner_ids])
-        date_start = datetime.strptime(
-            date_start, DEFAULT_SERVER_DATE_FORMAT).date()
-        date_end = datetime.strptime(
-            date_end, DEFAULT_SERVER_DATE_FORMAT).date()
-        self.env.cr.execute("""WITH Q1 AS (%s), Q2 AS (%s)
-        SELECT partner_id, move_id, account_id, date, date_maturity, name, ref, debit,
-                            credit, amount, blocked, currency_id
-        FROM Q2
-        ORDER BY date, date_maturity, move_id""" % (
-            self._display_lines_sql_q1(partners, date_start, date_end),
-            self._display_lines_sql_q2(company_id)))
+        date_start = datetime.strptime(date_start, DEFAULT_SERVER_DATE_FORMAT).date()
+        date_end = datetime.strptime(date_end, DEFAULT_SERVER_DATE_FORMAT).date()
+
+        q1_query = self._display_lines_sql_q1(partners, date_start, date_end)
+        q2_query = self._display_lines_sql_q2(company_id)
+
+        self.env.cr.execute(f"""
+            WITH Q1 AS ({q1_query}), Q2 AS ({q2_query})
+            SELECT partner_id, move_id, account_id, date, date_maturity, name, ref, debit,
+                   credit, amount, blocked, currency_id
+            FROM Q2
+            ORDER BY date, date_maturity, move_id
+        """)
+
         for row in self.env.cr.dictfetchall():
             res[row.pop('partner_id')].append(row)
         return res
