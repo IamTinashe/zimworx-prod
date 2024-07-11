@@ -65,44 +65,43 @@ class CustomerVendorStatement(models.AbstractModel):
         date = str_date
         return date
 
-
     def _initial_balance_sql_q1_payable(self, partners, date_start):
-        return """
+        return f"""
             SELECT l.partner_id, l.currency_id, l.company_id,
             CASE WHEN l.currency_id is not null AND l.amount_currency > 0.0
-                THEN sum(l.amount_currency)
-                ELSE sum(l.debit)
+                THEN SUM(l.amount_currency)
+                ELSE SUM(l.debit)
             END as debit,
             CASE WHEN l.currency_id is not null AND l.amount_currency < 0.0
-                THEN sum(l.amount_currency * (-1))
-                ELSE sum(l.credit)
+                THEN SUM(l.amount_currency * (-1))
+                ELSE SUM(l.credit)
             END as credit
             FROM account_move_line l
-            JOIN account_move m ON (l.move_id = m.id)
-            WHERE l.partner_id IN (%s) AND l.account_internal_type = 'payable'
-                                AND l.date <= '%s' AND not l.blocked
-            GROUP BY l.partner_id, l.currency_id, l.amount_currency,
-                                l.company_id
-        """ % (partners, date_start)
+            JOIN account_move m ON l.move_id = m.id
+            JOIN account_account a ON l.account_id = a.id
+            WHERE l.partner_id IN ({partners}) AND a.account_type = 'payable'
+                  AND l.date <= '{date_start}' AND not l.blocked
+            GROUP BY l.partner_id, l.currency_id, l.company_id
+        """
 
     def _initial_balance_sql_q1_receivable_and_payable(self, partners, date_start):
-        return """
+        return f"""
             SELECT l.partner_id, l.currency_id, l.company_id,
             CASE WHEN l.currency_id is not null AND l.amount_currency > 0.0
-                THEN sum(l.amount_currency)
-                ELSE sum(l.debit)
+                THEN SUM(l.amount_currency)
+                ELSE SUM(l.debit)
             END as debit,
             CASE WHEN l.currency_id is not null AND l.amount_currency < 0.0
-                THEN sum(l.amount_currency * (-1))
-                ELSE sum(l.credit)
+                THEN SUM(l.amount_currency * (-1))
+                ELSE SUM(l.credit)
             END as credit
             FROM account_move_line l
-            JOIN account_move m ON (l.move_id = m.id)
-            WHERE l.partner_id IN (%s) AND (l.account_internal_type = 'payable' OR l.account_internal_type = 'receivable')
-                                AND l.date <= '%s' AND not l.blocked
-            GROUP BY l.partner_id, l.currency_id, l.amount_currency,
-                                l.company_id
-        """ % (partners, date_start)
+            JOIN account_move m ON l.move_id = m.id
+            JOIN account_account a ON l.account_id = a.id
+            WHERE l.partner_id IN ({partners}) AND (a.account_type = 'payable' OR a.account_type = 'receivable')
+                  AND l.date <= '{date_start}' AND not l.blocked
+            GROUP BY l.partner_id, l.currency_id, l.company_id
+        """
 
     def _initial_balance_sql_q2_payable(self, company_id):
         return """
@@ -177,56 +176,56 @@ class CustomerVendorStatement(models.AbstractModel):
         """
 
     def _display_lines_sql_q1_payable(self, partners, date_start, date_end):
-        return """
+        return f"""
             SELECT m.name AS move_id, aa.code AS account_id, l.partner_id, l.date, l.name,
-                                l.ref, l.blocked, l.currency_id, l.company_id,
+                                    l.ref, l.blocked, l.currency_id, l.company_id,
             CASE WHEN (l.currency_id is not null AND l.amount_currency > 0.0)
-                THEN sum(l.amount_currency)
-                ELSE sum(l.debit)
+                THEN SUM(l.amount_currency)
+                ELSE SUM(l.debit)
             END as debit,
             CASE WHEN (l.currency_id is not null AND l.amount_currency < 0.0)
-                THEN sum(l.amount_currency * (-1))
-                ELSE sum(l.credit)
+                THEN SUM(l.amount_currency * (-1))
+                ELSE SUM(l.credit)
             END as credit,
             CASE WHEN l.date_maturity is null
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
             FROM account_move_line l
-            JOIN account_move m ON (l.move_id = m.id)
-            JOIN account_account aa ON (l.account_id = aa.id)
-            WHERE l.partner_id IN (%s) AND l.account_internal_type = 'payable'
-                                AND '%s' < l.date AND l.date <= '%s'
+            JOIN account_move m ON l.move_id = m.id
+            JOIN account_account aa ON l.account_id = aa.id
+            WHERE l.partner_id IN ({partners}) AND aa.account_type = 'payable'
+                  AND '{date_start}' < l.date AND l.date <= '{date_end}'
             GROUP BY l.partner_id, m.name, aa.id, l.date, l.date_maturity, l.name,
-                                l.ref, l.blocked, l.currency_id,
-                                l.amount_currency, l.company_id
-        """ % (partners, date_start, date_end)
+                                    l.ref, l.blocked, l.currency_id,
+                                    l.amount_currency, l.company_id
+        """
 
     def _display_lines_sql_q1_receivable_and_payable(self, partners, date_start, date_end):
-        return """
+        return f"""
             SELECT m.name AS move_id, aa.code AS account_id, l.partner_id, l.date, l.name,
                                 l.ref, l.blocked, l.currency_id, l.company_id,
             CASE WHEN (l.currency_id is not null AND l.amount_currency > 0.0)
-                THEN sum(l.amount_currency)
-                ELSE sum(l.debit)
+                THEN SUM(l.amount_currency)
+                ELSE SUM(l.debit)
             END as debit,
             CASE WHEN (l.currency_id is not null AND l.amount_currency < 0.0)
-                THEN sum(l.amount_currency * (-1))
-                ELSE sum(l.credit)
+                THEN SUM(l.amount_currency * (-1))
+                ELSE SUM(l.credit)
             END as credit,
             CASE WHEN l.date_maturity is null
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
             FROM account_move_line l
-            JOIN account_move m ON (l.move_id = m.id)
-            JOIN account_account aa ON (l.account_id = aa.id)
-            WHERE l.partner_id IN (%s) AND (l.account_internal_type = 'payable' OR l.account_internal_type = 'receivable') 
-                                AND '%s' < l.date AND l.date <= '%s'
+            JOIN account_move m ON l.move_id = m.id
+            JOIN account_account aa ON l.account_id = aa.id
+            WHERE l.partner_id IN ({partners}) AND (aa.account_type = 'payable' OR aa.account_type = 'receivable')
+                  AND '{date_start}' < l.date AND l.date <= '{date_end}'
             GROUP BY l.partner_id, m.name, aa.id, l.date, l.date_maturity, l.name,
                                 l.ref, l.blocked, l.currency_id,
                                 l.amount_currency, l.company_id
-        """ % (partners, date_start, date_end)
+        """
 
     def _display_lines_sql_q2(self, company_id):
         return """
@@ -318,118 +317,115 @@ class CustomerVendorStatement(models.AbstractModel):
         return res
 
     def _show_buckets_sql_q1(self, partners, date_start, date_end):
-        return """
+        return f"""
             SELECT l.partner_id, l.currency_id, l.company_id, l.move_id,
             CASE WHEN l.balance > 0.0
-                THEN l.balance - sum(coalesce(pd.amount, 0.0))
-                ELSE l.balance + sum(coalesce(pc.amount, 0.0))
+                THEN l.balance - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.balance + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due,
             CASE WHEN l.balance > 0.0
-                THEN l.amount_currency - sum(coalesce(pd.amount, 0.0))
-                ELSE l.amount_currency + sum(coalesce(pc.amount, 0.0))
+                THEN l.amount_currency - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.amount_currency + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due_currency,
             CASE WHEN l.date_maturity is null
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
             FROM account_move_line l
-            JOIN account_move m ON (l.move_id = m.id)
-            LEFT JOIN (SELECT pr.*
+            JOIN account_move m ON l.move_id = m.id
+            JOIN account_account aa ON l.account_id = aa.id
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.credit_move_id = l2.id
-                WHERE '%s' <= l2.date
-                AND l2.date <= '%s'
+                INNER JOIN account_move_line l2 ON pr.credit_move_id = l2.id
+                WHERE '{date_start}' <= l2.date AND l2.date <= '{date_end}'
             ) as pd ON pd.debit_move_id = l.id
-            LEFT JOIN (SELECT pr.*
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.debit_move_id = l2.id
-                WHERE '%s' <= l2.date
-                AND l2.date <= '%s'
+                INNER JOIN account_move_line l2 ON pr.debit_move_id = l2.id
+                WHERE '{date_start}' <= l2.date AND l2.date <= '{date_end}'
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND l.account_internal_type = 'receivable'
-                AND '%s' <= l.date AND l.date <= '%s' AND not l.reconciled AND not l.blocked
+            WHERE l.partner_id IN ({partners}) AND aa.account_type = 'receivable'
+                AND '{date_start}' <= l.date AND l.date <= '{date_end}' AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
                                 l.amount_currency, l.balance, l.move_id,
                                 l.company_id
-        """ % (date_start, date_end, date_start, date_end, partners, date_start, date_end)
+        """
 
     def _show_buckets_sql_q1_payable(self, partners, date_start, date_end):
-        return """
+        return f"""
             SELECT l.partner_id, l.currency_id, l.company_id, l.move_id,
             CASE WHEN l.balance > 0.0
-                THEN l.balance - sum(coalesce(pd.amount, 0.0))
-                ELSE l.balance + sum(coalesce(pc.amount, 0.0))
+                THEN l.balance - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.balance + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due,
             CASE WHEN l.balance > 0.0
-                THEN l.amount_currency - sum(coalesce(pd.amount, 0.0))
-                ELSE l.amount_currency + sum(coalesce(pc.amount, 0.0))
+                THEN l.amount_currency - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.amount_currency + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due_currency,
             CASE WHEN l.date_maturity is null
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
             FROM account_move_line l
-            JOIN account_move m ON (l.move_id = m.id)
-            LEFT JOIN (SELECT pr.*
+            JOIN account_move m ON l.move_id = m.id
+            JOIN account_account aa ON l.account_id = aa.id
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.credit_move_id = l2.id
-                WHERE '%s' <= l2.date
-                AND l2.date <= '%s'
+                INNER JOIN account_move_line l2 ON pr.credit_move_id = l2.id
+                WHERE '{date_start}' <= l2.date AND l2.date <= '{date_end}'
             ) as pd ON pd.debit_move_id = l.id
-            LEFT JOIN (SELECT pr.*
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.debit_move_id = l2.id
-                WHERE '%s' <= l2.date
-                AND l2.date <= '%s'
+                INNER JOIN account_move_line l2 ON pr.debit_move_id = l2.id
+                WHERE '{date_start}' <= l2.date AND l2.date <= '{date_end}'
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND l.account_internal_type = 'payable'
-                AND '%s' <= l.date AND l.date <= '%s' AND not l.reconciled AND not l.blocked
+            WHERE l.partner_id IN ({partners}) AND aa.account_type = 'payable'
+                AND '{date_start}' <= l.date AND l.date <= '{date_end}' AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
-                                l.amount_currency, l.balance, l.move_id,
-                                l.company_id
-        """ % (date_start, date_end, date_start, date_end, partners, date_start, date_end)
+                        l.amount_currency, l.balance, l.move_id,
+                        l.company_id
+        """
 
     def _show_buckets_sql_q1_receivable_and_payable(self, partners, date_start, date_end):
-        return """
+        return f"""
             SELECT l.partner_id, l.currency_id, l.company_id, l.move_id,
             CASE WHEN l.balance > 0.0
-                THEN l.balance - sum(coalesce(pd.amount, 0.0))
-                ELSE l.balance + sum(coalesce(pc.amount, 0.0))
+                THEN l.balance - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.balance + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due,
             CASE WHEN l.balance > 0.0
-                THEN l.amount_currency - sum(coalesce(pd.amount, 0.0))
-                ELSE l.amount_currency + sum(coalesce(pc.amount, 0.0))
+                THEN l.amount_currency - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.amount_currency + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due_currency,
             CASE WHEN l.date_maturity is null
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
             FROM account_move_line l
-            JOIN account_move m ON (l.move_id = m.id)
-            LEFT JOIN (SELECT pr.*
+            JOIN account_move m ON l.move_id = m.id
+            JOIN account_account aa ON l.account_id = aa.id
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.credit_move_id = l2.id
-                WHERE '%s' <= l2.date
-                AND l2.date <= '%s'
+                INNER JOIN account_move_line l2 ON pr.credit_move_id = l2.id
+                WHERE '{date_start}' <= l2.date AND l2.date <= '{date_end}'
             ) as pd ON pd.debit_move_id = l.id
-            LEFT JOIN (SELECT pr.*
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.debit_move_id = l2.id
-                WHERE '%s' <= l2.date
-                AND l2.date <= '%s'
+                INNER JOIN account_move_line l2 ON pr.debit_move_id = l2.id
+                WHERE '{date_start}' <= l2.date AND l2.date <= '{date_end}'
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND (l.account_internal_type = 'payable' OR l.account_internal_type = 'receivable') 
-                AND '%s' <= l.date AND l.date <= '%s' AND not l.reconciled AND not l.blocked
+            WHERE l.partner_id IN ({partners}) AND (aa.account_type = 'payable' OR aa.account_type = 'receivable') 
+                AND '{date_start}' <= l.date AND l.date <= '{date_end}' AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
                                 l.amount_currency, l.balance, l.move_id,
                                 l.company_id
-        """ % (date_start, date_end, date_start, date_end, partners, date_start, date_end)
+        """
 
     def _show_overdue_sql_q1(self, partners, date_end):
         return f"""
@@ -469,76 +465,78 @@ class CustomerVendorStatement(models.AbstractModel):
         """
 
     def _show_overdue_sql_q1_payable(self, partners, date_end):
-        return """
+        return f"""
             SELECT l.partner_id, l.currency_id, l.company_id, l.move_id,
             CASE WHEN l.balance > 0.0
-                THEN l.balance - sum(coalesce(pd.amount, 0.0))
-                ELSE l.balance + sum(coalesce(pc.amount, 0.0))
+                THEN l.balance - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.balance + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due,
             CASE WHEN l.balance > 0.0
-                THEN l.amount_currency - sum(coalesce(pd.amount, 0.0))
-                ELSE l.amount_currency + sum(coalesce(pc.amount, 0.0))
+                THEN l.amount_currency - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.amount_currency + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due_currency,
             CASE WHEN l.date_maturity is null
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
             FROM account_move_line l
-            JOIN account_move m ON (l.move_id = m.id)
-            LEFT JOIN (SELECT pr.*
+            JOIN account_move m ON l.move_id = m.id
+            JOIN account_account aa ON l.account_id = aa.id
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.credit_move_id = l2.id
-                WHERE '%s' <= l2.date
+                INNER JOIN account_move_line l2 ON pr.credit_move_id = l2.id
+                WHERE '{date_end}' <= l2.date
             ) as pd ON pd.debit_move_id = l.id
-            LEFT JOIN (SELECT pr.*
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.debit_move_id = l2.id
-                WHERE '%s' <= l2.date
+                INNER JOIN account_move_line l2 ON pr.debit_move_id = l2.id
+                WHERE '{date_end}' <= l2.date
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND l.account_internal_type = 'payable' 
+            WHERE l.partner_id IN ({partners}) AND aa.account_type = 'payable'
                 AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
-                                l.amount_currency, l.balance, l.move_id,
-                                l.company_id
-        """ % (date_end, date_end, partners)
+                        l.amount_currency, l.balance, l.move_id,
+                        l.company_id
+        """
 
     def _show_overdue_sql_q1_receivable_and_payable(self, partners, date_end):
-        return """
+        return f"""
             SELECT l.partner_id, l.currency_id, l.company_id, l.move_id,
             CASE WHEN l.balance > 0.0
-                THEN l.balance - sum(coalesce(pd.amount, 0.0))
-                ELSE l.balance + sum(coalesce(pc.amount, 0.0))
+                THEN l.balance - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.balance + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due,
             CASE WHEN l.balance > 0.0
-                THEN l.amount_currency - sum(coalesce(pd.amount, 0.0))
-                ELSE l.amount_currency + sum(coalesce(pc.amount, 0.0))
+                THEN l.amount_currency - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.amount_currency + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due_currency,
             CASE WHEN l.date_maturity is null
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
             FROM account_move_line l
-            JOIN account_move m ON (l.move_id = m.id)
-            LEFT JOIN (SELECT pr.*
+            JOIN account_move m ON l.move_id = m.id
+            JOIN account_account aa ON l.account_id = aa.id
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.credit_move_id = l2.id
-                WHERE '%s' <= l2.date
+                INNER JOIN account_move_line l2 ON pr.credit_move_id = l2.id
+                WHERE '{date_end}' <= l2.date
             ) as pd ON pd.debit_move_id = l.id
-            LEFT JOIN (SELECT pr.*
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.debit_move_id = l2.id
-                WHERE '%s' <= l2.date
+                INNER JOIN account_move_line l2 ON pr.debit_move_id = l2.id
+                WHERE '{date_end}' <= l2.date
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND (l.account_internal_type = 'payable' OR l.account_internal_type = 'receivable') 
+            WHERE l.partner_id IN ({partners}) AND (aa.account_type = 'payable' OR aa.account_type = 'receivable') 
                 AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
-                                l.amount_currency, l.balance, l.move_id,
-                                l.company_id
-        """ % (date_end, date_end, partners)
+                        l.amount_currency, l.balance, l.move_id,
+                        l.company_id
+        """
 
     def _show_buckets_sql_q2(self, today, minus_30, minus_60, minus_90):
         return """
