@@ -30,7 +30,9 @@ class CustomerVendorStatement(models.AbstractModel):
         return res
 
     def _initial_balance_sql_q1(self, partners, date_start):
-        return """
+        partners_list = ', '.join(
+            f"'{partner}'" for partner in partners)  # Ensure partners are safely quoted if they are strings
+        return f"""
             SELECT l.partner_id, l.currency_id, l.company_id,
             CASE WHEN l.currency_id is not null AND l.amount_currency > 0.0
                 THEN SUM(l.amount_currency)
@@ -41,22 +43,22 @@ class CustomerVendorStatement(models.AbstractModel):
                 ELSE SUM(l.credit)
             END AS credit
             FROM account_move_line l
-            JOIN account_move m ON (l.move_id = m.id)
-            JOIN account_account a ON (l.account_id = a.id)
-            WHERE l.partner_id IN (%s) AND l.account_type = 'receivable'
-                                AND l.date <= '%s' AND not l.blocked
-            GROUP BY l.partner_id, l.currency_id, l.company_id, l.amount_currency
-        """ % (partners, date_start)
+            JOIN account_move m ON l.move_id = m.id
+            JOIN account_account a ON l.account_id = a.id
+            WHERE l.partner_id IN ({partners_list}) AND a.account_type = 'income'
+                AND l.date <= '{date_start}' AND not l.blocked
+            GROUP BY l.partner_id, l.currency_id, l.company_id
+        """
 
     def _initial_balance_sql_q2(self, company_id):
-        return """
+        return f"""
             SELECT Q1.partner_id, SUM(Q1.debit - Q1.credit) AS balance,
             COALESCE(Q1.currency_id, c.currency_id) AS currency_id
             FROM Q1
-            JOIN res_company c ON (c.id = Q1.company_id)
-            WHERE c.id = %s
+            JOIN res_company c ON c.id = Q1.company_id
+            WHERE c.id = {company_id}
             GROUP BY Q1.partner_id, Q1.currency_id, c.currency_id
-        """ % company_id
+        """
 
     def _format_date_to_partner_lang(self, str_date, partner_id):
         lang_code = self.env['res.partner'].browse(partner_id).lang
@@ -79,7 +81,7 @@ class CustomerVendorStatement(models.AbstractModel):
             FROM account_move_line l
             JOIN account_move m ON l.move_id = m.id
             JOIN account_account a ON l.account_id = a.id
-            WHERE l.partner_id IN ({partners}) AND l.account_type = 'payable'
+            WHERE l.partner_id IN ({partners}) AND l.account_type = 'expense'
                   AND l.date <= '{date_start}' AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.company_id
         """
@@ -98,7 +100,7 @@ class CustomerVendorStatement(models.AbstractModel):
             FROM account_move_line l
             JOIN account_move m ON l.move_id = m.id
             JOIN account_account a ON l.account_id = a.id
-            WHERE l.partner_id IN ({partners}) AND (l.account_type = 'payable' OR l.account_type = 'receivable')
+            WHERE l.partner_id IN ({partners}) AND (l.account_type = 'expense' OR l.account_type = 'income')
                   AND l.date <= '{date_start}' AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.company_id
         """
@@ -168,7 +170,7 @@ class CustomerVendorStatement(models.AbstractModel):
             FROM account_move_line l
             JOIN account_move m ON (l.move_id = m.id)
             JOIN account_account aa ON (l.account_id = aa.id)
-            WHERE l.partner_id IN ({partners}) AND l.account_type = 'receivable'
+            WHERE l.partner_id IN ({partners}) AND l.account_type = 'income'
                   AND '{date_start}' <= l.date AND l.date <= '{date_end}'
             GROUP BY l.partner_id, m.name, aa.code, l.date, l.date_maturity, l.name,
                      l.ref, l.blocked, l.currency_id, l.amount_currency, l.company_id
@@ -193,7 +195,7 @@ class CustomerVendorStatement(models.AbstractModel):
             FROM account_move_line l
             JOIN account_move m ON l.move_id = m.id
             JOIN account_account aa ON l.account_id = aa.id
-            WHERE l.partner_id IN ({partners}) AND l.account_type = 'payable'
+            WHERE l.partner_id IN ({partners}) AND l.account_type = 'expense'
                   AND '{date_start}' < l.date AND l.date <= '{date_end}'
             GROUP BY l.partner_id, m.name, aa.id, l.date, l.date_maturity, l.name,
                                     l.ref, l.blocked, l.currency_id,
@@ -219,7 +221,7 @@ class CustomerVendorStatement(models.AbstractModel):
             FROM account_move_line l
             JOIN account_move m ON l.move_id = m.id
             JOIN account_account aa ON l.account_id = aa.id
-            WHERE l.partner_id IN ({partners}) AND (l.account_type = 'payable' OR l.account_type = 'receivable')
+            WHERE l.partner_id IN ({partners}) AND (l.account_type = 'expense' OR l.account_type = 'income')
                   AND '{date_start}' < l.date AND l.date <= '{date_end}'
             GROUP BY l.partner_id, m.name, aa.id, l.date, l.date_maturity, l.name,
                                 l.ref, l.blocked, l.currency_id,
@@ -345,7 +347,7 @@ class CustomerVendorStatement(models.AbstractModel):
                 INNER JOIN account_move_line l2 ON pr.debit_move_id = l2.id
                 WHERE '{date_start}' <= l2.date AND l2.date <= '{date_end}'
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN ({partners}) AND l.account_type = 'receivable'
+            WHERE l.partner_id IN ({partners}) AND l.account_type = 'income'
                 AND '{date_start}' <= l.date AND l.date <= '{date_end}' AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
                                 l.amount_currency, l.balance, l.move_id,
@@ -382,7 +384,7 @@ class CustomerVendorStatement(models.AbstractModel):
                 INNER JOIN account_move_line l2 ON pr.debit_move_id = l2.id
                 WHERE '{date_start}' <= l2.date AND l2.date <= '{date_end}'
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN ({partners}) AND l.account_type = 'payable'
+            WHERE l.partner_id IN ({partners}) AND l.account_type = 'expense'
                 AND '{date_start}' <= l.date AND l.date <= '{date_end}' AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
                         l.amount_currency, l.balance, l.move_id,
@@ -419,7 +421,7 @@ class CustomerVendorStatement(models.AbstractModel):
                 INNER JOIN account_move_line l2 ON pr.debit_move_id = l2.id
                 WHERE '{date_start}' <= l2.date AND l2.date <= '{date_end}'
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN ({partners}) AND (l.account_type = 'payable' OR l.account_type = 'receivable') 
+            WHERE l.partner_id IN ({partners}) AND (l.account_type = 'expense' OR l.account_type = 'income') 
                 AND '{date_start}' <= l.date AND l.date <= '{date_end}' AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
                                 l.amount_currency, l.balance, l.move_id,
@@ -456,7 +458,7 @@ class CustomerVendorStatement(models.AbstractModel):
                 INNER JOIN account_move_line l2 ON pr.debit_move_id = l2.id
                 WHERE '{date_end}' <= l2.date
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN ({partners}) AND l.account_type = 'receivable'
+            WHERE l.partner_id IN ({partners}) AND l.account_type = 'income'
                 AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
                         l.amount_currency, l.balance, l.move_id,
@@ -493,7 +495,7 @@ class CustomerVendorStatement(models.AbstractModel):
                 INNER JOIN account_move_line l2 ON pr.debit_move_id = l2.id
                 WHERE '{date_end}' <= l2.date
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN ({partners}) AND l.account_type = 'payable'
+            WHERE l.partner_id IN ({partners}) AND l.account_type = 'expense'
                 AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
                         l.amount_currency, l.balance, l.move_id,
@@ -530,7 +532,7 @@ class CustomerVendorStatement(models.AbstractModel):
                 INNER JOIN account_move_line l2 ON pr.debit_move_id = l2.id
                 WHERE '{date_end}' <= l2.date
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN ({partners}) AND (l.account_type = 'payable' OR l.account_type = 'receivable') 
+            WHERE l.partner_id IN ({partners}) AND (l.account_type = 'expense' OR l.account_type = 'income') 
                 AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
                         l.amount_currency, l.balance, l.move_id,
@@ -906,7 +908,7 @@ class CustomerVendorStatement(models.AbstractModel):
         date_start = data['date_start']
         date_end = data['date_end']
         today = fields.Date.today()
-        if data['report_type'] == 'receivable':
+        if data['report_type'] == 'income':
             overdues_to_display = {}
             balance_start_to_display, buckets_to_display = {}, {}
             lines_to_display, amount_due = {}, {}
@@ -975,7 +977,7 @@ class CustomerVendorStatement(models.AbstractModel):
                             buckets_to_display[partner_id][currency] = []
                         buckets_to_display[partner_id][currency] = line
 
-        if data['report_type'] == 'payable':
+        if data['report_type'] == 'expense':
             balance_start_to_display, buckets_to_display = {}, {}
             lines_to_display, amount_due = {}, {}
             currency_to_display = {}
