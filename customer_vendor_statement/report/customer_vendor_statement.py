@@ -908,210 +908,75 @@ class CustomerVendorStatement(models.AbstractModel):
         date_start = data['date_start']
         date_end = data['date_end']
         today = fields.Date.today()
+
+        overdues_to_display = {}
+        balance_start_to_display, buckets_to_display = {}, {}
+        lines_to_display, amount_due = {}, {}
+        currency_to_display = {}
+        today_display, date_start_display, date_end_display = {}, {}, {}
+
         if data['report_type'] == 'income':
-            overdues_to_display = {}
-            balance_start_to_display, buckets_to_display = {}, {}
-            lines_to_display, amount_due = {}, {}
-            currency_to_display = {}
-            today_display, date_start_display, date_end_display = {}, {}, {}
+            balance_start = self._get_account_initial_balance(company_id, partner_ids, date_start)
+            lines = self._get_account_display_lines(company_id, partner_ids, date_start, date_end)
+            overdues = self._get_account_show_overdue(company_id, partner_ids, date_end)
+            if data['show_aging_buckets']:
+                buckets = self._get_account_show_buckets(company_id, partner_ids, date_start, date_end)
 
-            balance_start = self._get_account_initial_balance(
-                company_id, partner_ids, date_start)
-            for partner_id in partner_ids:
-                balance_start_to_display[partner_id] = {}
-                for line in balance_start[partner_id]:
-                    currency = self.env['res.currency'].browse(line['currency_id'])
-                    if currency not in balance_start_to_display[partner_id]:
-                        balance_start_to_display[partner_id][currency] = []
-                    balance_start_to_display[partner_id][currency] = \
-                        line['balance']
+        elif data['report_type'] == 'expense':
+            balance_start = self._get_account_initial_balance_payable(company_id, partner_ids, date_start)
+            lines = self._get_account_display_lines_payable(company_id, partner_ids, date_start, date_end)
+            overdues = self._get_account_show_overdue_payable(company_id, partner_ids, date_end)
+            if data['show_aging_buckets']:
+                buckets = self._get_account_show_buckets_payable(company_id, partner_ids, date_start, date_end)
 
-            lines = self._get_account_display_lines(
-                company_id, partner_ids, date_start, date_end)
-            for partner_id in partner_ids:
-                lines_to_display[partner_id], amount_due[partner_id] = {}, {}
-                currency_to_display[partner_id] = {}
-                today_display[partner_id] = self._format_date_to_partner_lang(
-                    today, partner_id)
-                date_start_display[partner_id] = self._format_date_to_partner_lang(
-                    date_start, partner_id)
-                date_end_display[partner_id] = self._format_date_to_partner_lang(
-                    date_end, partner_id)
-                for line in lines[partner_id]:
-                    currency = self.env['res.currency'].browse(line['currency_id'])
-                    if currency not in lines_to_display[partner_id]:
-                        lines_to_display[partner_id][currency] = []
-                        currency_to_display[partner_id][currency] = currency
-                        if currency in balance_start_to_display[partner_id]:
-                            amount_due[partner_id][currency] = \
-                                balance_start_to_display[partner_id][currency]
-                        else:
-                            amount_due[partner_id][currency] = 0.0
-                    if not line['blocked']:
-                        amount_due[partner_id][currency] += line['amount']
-                    line['balance'] = amount_due[partner_id][currency]
-                    line['date'] = self._format_date_to_partner_lang(
-                        line['date'], partner_id)
-                    line['date_maturity'] = self._format_date_to_partner_lang(
-                        line['date_maturity'], partner_id)
-                    lines_to_display[partner_id][currency].append(line)
+        elif data['report_type'] == 'receivable_and_payable':
+            balance_start = self._get_account_initial_balance_receivable_and_payable(company_id, partner_ids,
+                                                                                     date_start)
+            lines = self._get_account_display_lines_receivable_and_payable(company_id, partner_ids, date_start,
+                                                                           date_end)
+            overdues = self._get_account_show_overdue_receivable_and_payable(company_id, partner_ids, date_end)
+            if data['show_aging_buckets']:
+                buckets = self._get_account_show_buckets_receivable_and_payable(company_id, partner_ids, date_start,
+                                                                                date_end)
 
-            overdues = self._get_account_show_overdue(
-                company_id, partner_ids, date_end)
-            for partner_id in partner_ids:
-                overdues_to_display[partner_id] = {}
-                for line in overdues[partner_id]:
-                    currency = self.env['res.currency'].browse(
-                        line['currency_id'])
-                    overdues_to_display[partner_id][currency] = line['current']
+        for partner_id in partner_ids:
+            today_display[partner_id] = self._format_date_to_partner_lang(today, partner_id)
+            date_start_display[partner_id] = self._format_date_to_partner_lang(date_start, partner_id)
+            date_end_display[partner_id] = self._format_date_to_partner_lang(date_end, partner_id)
+
+            lines_to_display[partner_id], amount_due[partner_id] = {}, {}
+            currency_to_display[partner_id], overdues_to_display[partner_id] = {}, {}
+            balance_start_to_display[partner_id] = {}
+
+            for line in balance_start[partner_id]:
+                currency = self.env['res.currency'].browse(line['currency_id'])
+                balance_start_to_display[partner_id][currency] = line['balance']
+
+            for line in lines[partner_id]:
+                currency = self.env['res.currency'].browse(line['currency_id'])
+                if currency not in lines_to_display[partner_id]:
+                    lines_to_display[partner_id][currency] = []
+                    currency_to_display[partner_id][currency] = currency
+                    amount_due[partner_id][currency] = balance_start_to_display[partner_id].get(currency, 0.0)
+                if not line['blocked']:
+                    amount_due[partner_id][currency] += line['amount']
+                line['balance'] = amount_due[partner_id][currency]
+                line['date'] = self._format_date_to_partner_lang(line['date'], partner_id)
+                line['date_maturity'] = self._format_date_to_partner_lang(line['date_maturity'], partner_id)
+                lines_to_display[partner_id][currency].append(line)
+
+            for line in overdues[partner_id]:
+                currency = self.env['res.currency'].browse(line['currency_id'])
+                overdues_to_display[partner_id][currency] = line['current']
 
             if data['show_aging_buckets']:
-                buckets = self._get_account_show_buckets(
-                    company_id, partner_ids, date_start, date_end)
-                for partner_id in partner_ids:
-                    buckets_to_display[partner_id] = {}
-                    for line in buckets[partner_id]:
-                        currency = self.env['res.currency'].browse(
-                            line['currency_id'])
-                        if currency not in buckets_to_display[partner_id]:
-                            buckets_to_display[partner_id][currency] = []
-                        buckets_to_display[partner_id][currency] = line
-
-        if data['report_type'] == 'expense':
-            balance_start_to_display, buckets_to_display = {}, {}
-            lines_to_display, amount_due = {}, {}
-            currency_to_display = {}
-            overdues_to_display = {}
-            today_display, date_start_display, date_end_display = {}, {}, {}
-
-            balance_start = self._get_account_initial_balance_payable(
-                company_id, partner_ids, date_start)
-            for partner_id in partner_ids:
-                balance_start_to_display[partner_id] = {}
-                for line in balance_start[partner_id]:
+                buckets_to_display[partner_id] = {}
+                for line in buckets[partner_id]:
                     currency = self.env['res.currency'].browse(line['currency_id'])
-                    if currency not in balance_start_to_display[partner_id]:
-                        balance_start_to_display[partner_id][currency] = []
-                    balance_start_to_display[partner_id][currency] = \
-                        line['balance']
-            lines = self._get_account_display_lines_payable(
-                company_id, partner_ids, date_start, date_end)
-            for partner_id in partner_ids:
-                lines_to_display[partner_id], amount_due[partner_id] = {}, {}
-                currency_to_display[partner_id] = {}
-                today_display[partner_id] = self._format_date_to_partner_lang(
-                    today, partner_id)
-                date_start_display[partner_id] = self._format_date_to_partner_lang(
-                    date_start, partner_id)
-                date_end_display[partner_id] = self._format_date_to_partner_lang(
-                    date_end, partner_id)
-                for line in lines[partner_id]:
-                    currency = self.env['res.currency'].browse(line['currency_id'])
-                    if currency not in lines_to_display[partner_id]:
-                        lines_to_display[partner_id][currency] = []
-                        currency_to_display[partner_id][currency] = currency
-                        if currency in balance_start_to_display[partner_id]:
-                            amount_due[partner_id][currency] = \
-                                balance_start_to_display[partner_id][currency]
-                        else:
-                            amount_due[partner_id][currency] = 0.0
-                    if not line['blocked']:
-                        amount_due[partner_id][currency] += line['amount']
-                    line['balance'] = amount_due[partner_id][currency]
-                    line['date'] = self._format_date_to_partner_lang(
-                        line['date'], partner_id)
-                    line['date_maturity'] = self._format_date_to_partner_lang(
-                        line['date_maturity'], partner_id)
-                    lines_to_display[partner_id][currency].append(line)
+                    if currency not in buckets_to_display[partner_id]:
+                        buckets_to_display[partner_id][currency] = []
+                    buckets_to_display[partner_id][currency] = line
 
-            overdues = self._get_account_show_overdue_payable(
-                    company_id, partner_ids, date_end)
-            for partner_id in partner_ids:
-                overdues_to_display[partner_id] = {}
-                for line in overdues[partner_id]:
-                    currency = self.env['res.currency'].browse(
-                        line['currency_id'])
-                    overdues_to_display[partner_id][currency] = line['current']
-
-            if data['show_aging_buckets']:
-                buckets = self._get_account_show_buckets_payable(
-                    company_id, partner_ids, date_start, date_end)
-                for partner_id in partner_ids:
-                    buckets_to_display[partner_id] = {}
-                    for line in buckets[partner_id]:
-                        currency = self.env['res.currency'].browse(
-                            line['currency_id'])
-                        if currency not in buckets_to_display[partner_id]:
-                            buckets_to_display[partner_id][currency] = []
-                        buckets_to_display[partner_id][currency] = line
-
-        if data['report_type'] == 'receivable_and_payable':
-            balance_start_to_display, buckets_to_display = {}, {}
-            lines_to_display, amount_due, amount_overdue = {}, {}, {}
-            currency_to_display = {}
-            overdues_to_display = {}
-            today_display, date_start_display, date_end_display = {}, {}, {}
-            balance_start = self._get_account_initial_balance_receivable_and_payable(
-                company_id, partner_ids, date_start)
-            for partner_id in partner_ids:
-                balance_start_to_display[partner_id] = {}
-                for line in balance_start[partner_id]:
-                    currency = self.env['res.currency'].browse(line['currency_id'])
-                    if currency not in balance_start_to_display[partner_id]:
-                        balance_start_to_display[partner_id][currency] = []
-                    balance_start_to_display[partner_id][currency] = \
-                        line['balance']
-
-            lines = self._get_account_display_lines_receivable_and_payable(
-                company_id, partner_ids, date_start, date_end)
-            for partner_id in partner_ids:
-                lines_to_display[partner_id], amount_due[partner_id] = {}, {}
-                currency_to_display[partner_id] = {}
-                today_display[partner_id] = self._format_date_to_partner_lang(
-                    today, partner_id)
-                date_start_display[partner_id] = self._format_date_to_partner_lang(
-                    date_start, partner_id)
-                date_end_display[partner_id] = self._format_date_to_partner_lang(
-                    date_end, partner_id)
-                for line in lines[partner_id]:
-                    currency = self.env['res.currency'].browse(line['currency_id'])
-                    if currency not in lines_to_display[partner_id]:
-                        lines_to_display[partner_id][currency] = []
-                        currency_to_display[partner_id][currency] = currency
-                        if currency in balance_start_to_display[partner_id]:
-                            amount_due[partner_id][currency] = \
-                                balance_start_to_display[partner_id][currency]
-                        else:
-                            amount_due[partner_id][currency] = 0.0
-                    if not line['blocked']:
-                        amount_due[partner_id][currency] += line['amount']
-                    line['balance'] = amount_due[partner_id][currency]
-                    line['date'] = self._format_date_to_partner_lang(
-                        line['date'], partner_id)
-                    line['date_maturity'] = self._format_date_to_partner_lang(
-                        line['date_maturity'], partner_id)
-                    lines_to_display[partner_id][currency].append(line)
-
-            overdues = self._get_account_show_overdue_receivable_and_payable(
-                company_id, partner_ids, date_end)
-            for partner_id in partner_ids:
-                overdues_to_display[partner_id] = {}
-                for line in overdues[partner_id]:
-                    currency = self.env['res.currency'].browse(
-                        line['currency_id'])
-                    overdues_to_display[partner_id][currency] = line['current']
-
-            if data['show_aging_buckets']:
-                buckets = self._get_account_show_buckets_receivable_and_payable(
-                    company_id, partner_ids, date_start, date_end)
-                for partner_id in partner_ids:
-                    buckets_to_display[partner_id] = {}
-                    for line in buckets[partner_id]:
-                        currency = self.env['res.currency'].browse(
-                            line['currency_id'])
-                        if currency not in buckets_to_display[partner_id]:
-                            buckets_to_display[partner_id][currency] = []
-                        buckets_to_display[partner_id][currency] = line
         return {
             'doc_ids': partner_ids,
             'doc_model': 'res.partner',
