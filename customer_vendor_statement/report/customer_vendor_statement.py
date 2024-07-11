@@ -11,8 +11,8 @@ class CustomerVendorStatement(models.AbstractModel):
     _name = 'report.customer_vendor_statement.statement'
 
     def _get_account_initial_balance(self, company_id, partner_ids, date_start):
-        res = dict(map(lambda x: (x, []), partner_ids))
-        partners = ', '.join([str(i) for i in partner_ids])
+        res = {partner_id: [] for partner_id in partner_ids}
+        partners = ', '.join(map(str, partner_ids))
         date_start = datetime.strptime(date_start, DEFAULT_SERVER_DATE_FORMAT).date()
 
         q1_query = self._initial_balance_sql_q1(partners, date_start)
@@ -30,23 +30,25 @@ class CustomerVendorStatement(models.AbstractModel):
         return res
 
     def _initial_balance_sql_q1(self, partners, date_start):
-        partners_list = ', '.join(
-            f"'{partner}'" for partner in partners)  # Ensure partners are safely quoted if they are strings
+        partners_list = ', '.join(map(str, partners))  # Ensure partners are safely formatted as strings
         return f"""
             SELECT l.partner_id, l.currency_id, l.company_id,
-            CASE WHEN l.currency_id is not null AND l.amount_currency > 0.0
-                THEN SUM(l.amount_currency)
-                ELSE SUM(l.debit)
-            END AS debit,
-            CASE WHEN l.currency_id is not null AND l.amount_currency < 0.0
-                THEN SUM(l.amount_currency * (-1))
-                ELSE SUM(l.credit)
-            END AS credit
+            SUM(
+                CASE WHEN l.currency_id IS NOT NULL AND l.amount_currency > 0.0 THEN l.amount_currency
+                     ELSE l.debit
+                END
+            ) AS debit,
+            SUM(
+                CASE WHEN l.currency_id IS NOT NULL AND l.amount_currency < 0.0 THEN -l.amount_currency
+                     ELSE l.credit
+                END
+            ) AS credit
             FROM account_move_line l
             JOIN account_move m ON l.move_id = m.id
             JOIN account_account a ON l.account_id = a.id
             WHERE l.partner_id IN ({partners_list}) AND a.account_type = 'income'
-                AND l.date <= '{date_start}' AND not l.blocked
+            AND l.date <= '{date_start}'
+            AND NOT l.blocked
             GROUP BY l.partner_id, l.currency_id, l.company_id
         """
 
