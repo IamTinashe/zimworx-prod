@@ -76,11 +76,12 @@ class CustomerVendorStatement(models.AbstractModel):
 
     def _initial_balance_sql_q2(self, company_id):
         return """
-            SELECT Q1.partner_id, debit-credit AS balance,
+            SELECT Q1.partner_id, SUM(Q1.debit - Q1.credit) AS balance,
             COALESCE(Q1.currency_id, c.currency_id) AS currency_id
             FROM Q1
             JOIN res_company c ON (c.id = Q1.company_id)
             WHERE c.id = %s
+            GROUP BY Q1.partner_id, Q1.currency_id, c.currency_id
         """ % company_id
 
     def _initial_balance_sql_q2_payable(self, company_id):
@@ -101,18 +102,23 @@ class CustomerVendorStatement(models.AbstractModel):
             WHERE c.id = %s
         """ % company_id
 
-    def _get_account_initial_balance(self, company_id, partner_ids,
-                                     date_start):
+    def _get_account_initial_balance(self, company_id, partner_ids, date_start):
         res = dict(map(lambda x: (x, []), partner_ids))
         partners = ', '.join([str(i) for i in partner_ids])
-        date_start = datetime.strptime(
-            date_start, DEFAULT_SERVER_DATE_FORMAT).date()
-        self.env.cr.execute("""WITH Q1 AS (%s), Q2 AS (%s)
-        SELECT partner_id, currency_id, balance
-        FROM Q2""" % (self._initial_balance_sql_q1(partners, date_start),
-                      self._initial_balance_sql_q2(company_id)))
+        date_start = datetime.strptime(date_start, DEFAULT_SERVER_DATE_FORMAT).date()
+
+        q1_query = self._initial_balance_sql_q1(partners, date_start)
+        q2_query = self._initial_balance_sql_q2(company_id)
+
+        self.env.cr.execute(f"""
+            WITH Q1 AS ({q1_query}), Q2 AS ({q2_query})
+            SELECT partner_id, currency_id, balance
+            FROM Q2
+        """)
+
         for row in self.env.cr.dictfetchall():
             res[row.pop('partner_id')].append(row)
+
         return res
 
     def _get_account_initial_balance_payable(self, company_id, partner_ids,
