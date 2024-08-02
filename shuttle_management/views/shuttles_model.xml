@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="shuttles_model_form_view" model="ir.ui.view">
+            <field name="name">shuttles.model.form</field>
+            <field name="model">shuttles.model</field>
+            <field name="arch" type="xml">
+                <form string="Shuttles" sample="1">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" placeholder="Shuttle Name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="vehicle_registration"/>
+                                <field name="driver_id"/>
+                                <field name="capacity"/>
+                            </group>
+                            <group>
+                                <field name="service_status"/>
+                                <field name="location"/>
+                                <field name="last_maintenance_date"/>
+                                <field name="next_maintenance_date"/>
+                                <field name="notes"/>
+                            </group>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="shuttles_model_tree_view" model="ir.ui.view">
+            <field name="name">shuttles.model.tree</field>
+            <field name="model">shuttles.model</field>
+            <field name="arch" type="xml">
+                <tree string="Shuttles">
+                    <field name="name"/>
+                    <field name="vehicle_registration"/>
+                    <field name="driver_id"/>
+                    <field name="capacity"/>
+                    <field name="service_status" decoration-success="service_status == 'active'" decoration-info="service_status  == 'maintenance'" decoration-danger="service_status == 'inactive'"/>
+                    <field name="location"/>
+                    <field name="last_maintenance_date"/>
+                    <field name="next_maintenance_date"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="shuttles_model_search_view" model="ir.ui.view">
+            <field name="name">shuttles.model.search</field>
+            <field name="model">shuttles.model</field>
+            <field name="arch" type="xml">
+                <search string="Shuttles">
+                    <field name="name"/>
+                    <field name="driver_id"/>
+                    <field name="vehicle_registration"/>
+                    <filter string="Next Maintenance Date" name="next_maintenance_date" date="next_maintenance_date"/>
+                    <filter string="Last Maintenance Date" name="last_maintenance_date" date="last_maintenance_date"/>
+                    <group expand="1" string="Group By">
+                        <filter string="Driver" name="driver_id" domain="[]" context="{'group_by':'driver_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="shuttles_model_act_window" model="ir.actions.act_window">
+            <field name="name">Shuttles</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">shuttles.model</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    There is no examples click here to add new Shuttles.
+                </p>
+            </field>
+        </record>
+
+        <menuitem name="Shuttles" id="shuttles_model_menu" parent="shuttle_management_root_menu" action="shuttles_model_act_window"/>
+
+    </data>
+</odoo>
