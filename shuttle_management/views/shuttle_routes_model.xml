@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="shuttle_routes_model_form_view" model="ir.ui.view">
+            <field name="name">shuttle_routes.model.form</field>
+            <field name="model">shuttle_routes.model</field>
+            <field name="arch" type="xml">
+                <form string="Routes">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" placeholder="Route Name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="main_route_start"/>
+                                <field name="main_route_end"/>
+                                <field name="distance_km"/>
+                            </group>
+                            <group>
+                                <field name="cost"/>
+                                <field name="currency_id"/>
+                                <field name="total_employees_available"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Sub Routes" name="sub_routes">
+                                <field name="sub_route_ids">
+                                    <tree editable="top">
+                                        <field name="name"/>
+                                        <field name="start_location"/>
+                                        <field name="end_location"/>
+                                        <field name="sub_route_distance_km"/>
+                                        <field name="estimated_sub_route_duration"/>
+                                        <field name="total_employees_available"/>
+                                        <field name="currency_id"  column_invisible="1"/>
+                                        <field name="cost"  column_invisible="1"/>
+                                    </tree>
+                                </field>
+                            </page>
+                    </notebook>
+                        <field name="notes" class="oe-bordered-editor" placeholder="Notes..."/>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="shuttle_routes_model_tree_view" model="ir.ui.view">
+            <field name="name">shuttle_routes.model.tree</field>
+            <field name="model">shuttle_routes.model</field>
+            <field name="arch" type="xml">
+                <tree string="Routes">
+                    <field name="name"/>
+                    <field name="main_route_start"/>
+                    <field name="main_route_end"/>
+                    <field name="distance_km"/>
+                    <field name="total_employees_available"/>
+                    <field name="estimated_duration"/>
+                    <field name="currency_id" attrs="{'column_invisible': 'True'}"/>
+                    <field name="cost"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="shuttle_routes_model_search_view" model="ir.ui.view">
+            <field name="name">shuttle_routes.model.search</field>
+            <field name="model">shuttle_routes.model</field>
+            <field name="arch" type="xml">
+                <search string="Routes">
+                    <field name="name"/>
+                    <field name="main_route_start"/>
+                    <field name="main_route_end"/>
+                    <group expand="1" string="Group By">
+                        <filter string="Route Start" name="main_route_start" domain="[]" context="{'group_by':'main_route_start'}"/>
+                        <filter string="Route End" name="main_route_end" domain="[]" context="{'group_by':'main_route_end'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="shuttle_routes_model_act_window" model="ir.actions.act_window">
+            <field name="name">Routes</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">shuttle_routes.model</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    There is no examples click here to add new Routes.
+                </p>
+            </field>
+        </record>
+
+        <menuitem name="Routes" id="shuttle_routes_model_menu" parent="shuttle_management_root_menu" action="shuttle_routes_model_act_window"/>
+
+    </data>
+</odoo>

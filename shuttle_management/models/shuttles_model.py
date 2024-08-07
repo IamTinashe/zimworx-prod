@@ -20,3 +20,10 @@ class ShuttlesModel(models.Model):
     last_maintenance_date = fields.Date(string='Last Maintenance Date')
     next_maintenance_date = fields.Date(string='Next Maintenance Date')
     notes = fields.Text(string='Additional Notes')
+
+    def name_get(self):
+        result = []
+        for shuttle in self:
+            name = f"{shuttle.name} - {shuttle.vehicle_registration}"
+            result.append((shuttle.id, name))
+        return result
