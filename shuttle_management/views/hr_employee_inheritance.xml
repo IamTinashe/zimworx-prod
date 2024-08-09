@@ -224,7 +224,9 @@
         <menuitem name="Employees"
                   id="shuttle_employees_root_menu"
                   parent="shuttle_management_root_menu"
-                  action="inherit_open_view_employee_list_my"/>
+                  action="inherit_open_view_employee_list_my"
+                  sequence="1"
+                />
 
     </data>
 </odoo>

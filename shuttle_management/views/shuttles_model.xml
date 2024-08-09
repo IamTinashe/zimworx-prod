@@ -84,7 +84,7 @@
             </field>
         </record>
 
-        <menuitem name="Shuttles" id="shuttles_model_menu" parent="shuttle_management_root_menu" action="shuttles_model_act_window"/>
+        <menuitem name="Shuttles" id="shuttles_model_menu" parent="shuttle_management_root_menu" action="shuttles_model_act_window" sequence="3"/>
 
     </data>
 </odoo>

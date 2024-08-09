@@ -97,7 +97,7 @@
             </field>
         </record>
 
-        <menuitem name="Routes" id="shuttle_routes_model_menu" parent="shuttle_management_root_menu" action="shuttle_routes_model_act_window"/>
+        <menuitem name="Routes" id="shuttle_routes_model_menu" parent="shuttle_management_root_menu" action="shuttle_routes_model_act_window" sequence="4"/>
 
     </data>
 </odoo>

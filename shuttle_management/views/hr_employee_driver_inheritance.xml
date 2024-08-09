@@ -215,7 +215,9 @@
         <menuitem name="Drivers"
                   id="shuttle_drivers_root_menu"
                   parent="shuttle_management_root_menu"
-                  action="inherit_driver_open_view_employee_list_my"/>
+                  action="inherit_driver_open_view_employee_list_my"
+                  sequence="2"
+        />
 
     </data>
 </odoo>
