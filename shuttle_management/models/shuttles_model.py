@@ -20,7 +20,9 @@ class ShuttlesModel(models.Model):
     last_maintenance_date = fields.Date(string='Last Maintenance Date')
     next_maintenance_date = fields.Date(string='Next Maintenance Date')
     notes = fields.Text(string='Additional Notes')
-    shuttle_route=fields.Many2one('shuttle_routes.model', string='Shuttle Route')
+    shuttle_route=fields.Many2many('shuttle_routes.model', string='Shuttle Route')
+    shuttle_schedule_ids=fields.One2many('shuttle_schedule.model', 'shuttle_id', string='Shuttle Schedules')
+
 
 
     def name_get(self):

@@ -18,7 +18,7 @@
                                 <field name="vehicle_registration" style="text-transform: uppercase;"  />
                                 <field name="driver_id"/>
                                 <field name="capacity"/>
-                                <field name="shuttle_route"/>
+                                <field name="shuttle_route" widget="many2many_tags"/>
                             </group>
                             <group>
                                 <field name="service_status"/>
@@ -28,6 +28,19 @@
                                 <field name="notes"/>
                             </group>
                         </group>
+                        <notebook>
+                             <page name="Shuttle Schedule" >
+                                <field name="shuttle_schedule_ids" >
+                                    <tree editable="top">
+                                        <field name="weekday_id" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                                         <field name="departure_time" widget="float_time"/>
+                                         <field name="booked_seating_capacity"/>
+                                        <field name="is_fully_booked"  decoration-danger="is_fully_booked == 'fully_booked'"  decoration-success="is_fully_booked == 'not_fully_booked'"/>
+                                         <field name="max_seating_capacity"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
                     </sheet>
                     <div class="oe_chatter">
                         <field name="message_follower_ids"/>

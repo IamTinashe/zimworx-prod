@@ -29,14 +29,9 @@
                             <page string="Sub Routes" name="sub_routes">
                                 <field name="sub_route_ids">
                                     <tree editable="top">
-                                        <field name="name"/>
                                         <field name="start_location"/>
                                         <field name="end_location"/>
-                                        <field name="sub_route_distance_km"/>
-                                        <field name="estimated_sub_route_duration"/>
                                         <field name="total_employees_available"/>
-                                        <field name="currency_id"  column_invisible="1"/>
-                                        <field name="cost"  column_invisible="1"/>
                                     </tree>
                                 </field>
                             </page>

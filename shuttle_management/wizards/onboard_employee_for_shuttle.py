@@ -12,4 +12,10 @@ class OnboardEmployeeForShuttle(models.TransientModel):
 
     def action_allocated_schedule(self):
         """THIS FUNCTION IS FOR ONBOARDING A NEW EMPLOYEE TO A SHUTTLE, SCHUDULE AND A DRIVER"""
+
+        #search a shuttle with possible route with the employee
+        #if found search a route with possible slot
+        #if not found bring every driver available for custom selection
+
+
         print("Employee Onboarded")

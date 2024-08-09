@@ -20,6 +20,8 @@
         'views/shuttles_model.xml',
         'views/shuttle_routes_model.xml',
         'views/weekday_model.xml',
+        'views/route_start_location_model.xml',
+        'views/route_end_location_model.xml',
         # 'views/default_views.xml',
         # 'report/default_report.xml',
     ],

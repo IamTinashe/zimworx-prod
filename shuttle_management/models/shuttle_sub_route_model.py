@@ -8,15 +8,9 @@ class ShuttleSubRoute(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
 
-    name = fields.Char(string='Sub-Route Name', required=True)
+    name = fields.Char(string='Sub-Route Name',)
     route_id = fields.Many2one('shuttle_routes.model', string='Main Route', required=True, ondelete='cascade')
-    start_location = fields.Char(string='Start Location', required=True)
-    end_location = fields.Char(string='End Location', required=True)
-    sub_route_distance_km = fields.Float(string='Sub-Route Distance (KM)')
-    estimated_sub_route_duration = fields.Float(string='Estimated Duration (Hours)')
-    sequence = fields.Integer(string='Sequence', default=10)
-    active = fields.Boolean(string='Active', default=True)
-    total_employees_available = fields.Float(string='Total Employees available')
-    currency_id = fields.Many2one('res.currency', string='Currency', default=lambda self: self.env.ref('base.USD'))
-    cost = fields.Monetary(string='Cost')
+    total_employees_available = fields.Integer(string='Total Employees available')
+    start_location = fields.Many2one('route_start_location.model', string='Start Location', required=True)
+    end_location = fields.Many2one('route_end_location.model', string='End Location', required=True)
 

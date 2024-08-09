@@ -62,7 +62,7 @@
                             <group>
                                 <field name="shuttles_model"   options="{'no_edit': True, 'no_create': True }"/>
                                 <field name="shuttles_driver"  options="{'no_edit': True, 'no_create': True}"/>
-                                <field name="shuttle_route"  options="{'no_edit': True, 'no_create': True}" string="Shuttle Route"/>
+                                <field name="shuttle_route" widget="many2many_tags" options="{'no_edit': True, 'no_create': True}" string="Shuttle Route"/>
                                 <span class="o_form_label o_td_label" name="address_name">
                                 <b>Address</b>
                                 </span>

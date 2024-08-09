@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="route_end_location_model_tree_view" model="ir.ui.view">
+            <field name="name">route_end_location.model.tree</field>
+            <field name="model">route_end_location.model</field>
+            <field name="arch" type="xml">
+                <tree string="Route End Locations" editable="top">
+                    <field name="route_end"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="route_end_location_model_act_window" model="ir.actions.act_window">
+            <field name="name">Route End Locations</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">route_end_location.model</field>
+            <field name="view_mode">tree</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    There is no examples click here to add new Route End Locations.
+                </p>
+            </field>
+        </record>
+
+        <menuitem name="Route End Locations" id="route_end_location_model_menu" parent="shuttle_settings_menu" action="route_end_location_model_act_window" sequence="3"/>
+
+    </data>
+</odoo>
