@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="onboard_employee_for_shuttle_wizard_form_view" model="ir.ui.view">
+            <field name="name">onboard_employee_for_shuttle.wizard.form</field>
+            <field name="model">onboard_employee_for_shuttle.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Onboard Employee For Shuttle">
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" placeholder="Title"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                            </group>
+                            <group>
+                                <field name="name"/>
+                            </group>
+                        </group>
+                    <footer>
+                        <button name="action_allocated_schedule" type="object" string="Allocated Shuttle and Schedule" class="oe_highlight" />
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="onboard_employee_for_shuttle_wizard_act_window" model="ir.actions.act_window">
+            <field name="name">Onboard Employee For Shuttle</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">onboard_employee_for_shuttle.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="onboard_employee_for_shuttle_wizard_form_view"/>
+            <field name="target">new</field>
+        </record>
+    </data>
+</odoo>

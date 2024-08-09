@@ -14,6 +14,7 @@
         # security -- data -- views --reports
         'security/ir.model.access.csv',
         'views/main_menus.xml',
+        'wizards/onboard_employee_for_shuttle.xml',
         'views/hr_employee_inheritance.xml',
         'views/hr_employee_driver_inheritance.xml',
         'views/shuttles_model.xml',

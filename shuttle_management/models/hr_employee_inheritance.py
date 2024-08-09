@@ -19,6 +19,30 @@ class EmployeeInheritance(models.Model):
     street = fields.Char(related='address_home_id.street',string="Street")
     street2 = fields.Char(related='address_home_id.street2',string="Street2")
     city = fields.Char(related='address_home_id.city',string="City")
+    onboarding_stage = fields.Selection([('new_employee', 'New Employee'),
+                                         ('allocated_schedule', 'Allocated Schedule'),
+                                         ('qr_code_printed', 'Qr Code Printed'),
+                                         ('qr_code_collected', 'Qr Code Collected'),
+                                         ('done', 'Done'),
+                                         ],
+                                        'Onboarding Stage', required=True, default='new_employee')
+
+
+    def action_new_employee(self):
+        self.onboarding_stage = 'new_employee'
+
+    def action_allocated_schedule(self):
+        """THIS FUNCTION IS FOR ONBOARDING A NEW EMPLOYEE TO A SHUTTLE, SCHUDULE AND A DRIVER"""
+        self.onboarding_stage = 'allocated_schedule'
+
+    def action_qr_code_printed(self):
+        self.onboarding_stage = 'qr_code_printed'
+
+    def action_qr_code_collected(self):
+        self.onboarding_stage = 'qr_code_collected'
+
+    def action_done(self):
+        self.onboarding_stage = 'done'
     def create_qr_code_for_employee(self):
         """Generates and saves a QR code for each employee."""
         for employee in self:

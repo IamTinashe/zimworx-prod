@@ -19,6 +19,13 @@
                     <field name="last_activity" invisible="1"/>
                     <header>
                         <button name="create_qr_code_for_employee" string="Generate QRCode" type="object" />
+<!--                        <button name="action_new_employee" type="object" string="New Employee"  attrs="{'invisible': [('onboarding_stage', '!=', 'new_employee')]}" class="oe_highlight"/>-->
+                        <button name="%(onboard_employee_for_shuttle_wizard_act_window)d" type="action" string="Allocated Schedule"  attrs="{'invisible': [('onboarding_stage', '!=', 'new_employee')]}" class="oe_highlight"/>
+                        <button name="action_qr_code_printed" type="object" string="QR Code Printed" attrs="{'invisible': [('onboarding_stage', '!=', 'allocated_schedule')]}" class="oe_highlight"/>
+                        <button name="action_qr_code_collected" type="object" string="QR Code Collected" attrs="{'invisible': [('onboarding_stage', '!=', 'qr_code_printed')]}" class="oe_highlight"/>
+                        <button name="action_done" type="object" string="Done"  attrs="{'invisible': [('onboarding_stage', '!=', 'qr_code_collected')]}" class="oe_highlight"/>
+
+                        <field name="onboarding_stage" widget="statusbar" statusbar_visible="new_employee,allocated_schedule,qr_code_printed,qr_code_collected,done"/>
                     </header>
                     <sheet>
                         <div name="button_box" class="oe_button_box">
