@@ -4,4 +4,6 @@ access_shuttle_maintenance,access_shuttle_maintenance,model_shuttle_maintenance,
 access_shuttle_sub_route,access_shuttle_sub_route,model_shuttle_sub_route,base.group_user,1,1,1,1
 access_shuttle_routes_model,access_shuttle_routes_model,model_shuttle_routes_model,base.group_user,1,1,1,1
 access_drivers_schedule_model,access_drivers_schedule_model,model_drivers_schedule_model,base.group_user,1,1,1,1
+access_employee_schedules_model,access_employee_schedules_model,model_employee_schedules_model,base.group_user,1,1,1,1
+access_weekday_model,access_weekday_model,model_weekday_model,base.group_user,1,1,1,1
 

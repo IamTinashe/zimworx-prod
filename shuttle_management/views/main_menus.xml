@@ -2,5 +2,6 @@
 <odoo>
     <data>
         <menuitem name="Shuttle Management"  id="shuttle_management_root_menu"/>
+        <menuitem name="Settings"  id="shuttle_settings_menu" parent="shuttle_management_root_menu"/>
     </data>
 </odoo>

@@ -15,9 +15,10 @@
                         </div>
                         <group>
                             <group>
-                                <field name="vehicle_registration"/>
+                                <field name="vehicle_registration" style="text-transform: uppercase;"  />
                                 <field name="driver_id"/>
                                 <field name="capacity"/>
+                                <field name="shuttle_route"/>
                             </group>
                             <group>
                                 <field name="service_status"/>

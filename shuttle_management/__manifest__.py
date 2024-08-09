@@ -18,6 +18,7 @@
         'views/hr_employee_driver_inheritance.xml',
         'views/shuttles_model.xml',
         'views/shuttle_routes_model.xml',
+        'views/weekday_model.xml',
         # 'views/default_views.xml',
         # 'report/default_report.xml',
     ],

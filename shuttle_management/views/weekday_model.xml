@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="weekday_model_tree_view" model="ir.ui.view">
+            <field name="name">weekday.model.tree</field>
+            <field name="model">weekday.model</field>
+            <field name="arch" type="xml">
+                <tree string="Week Days" editable="top">
+                    <field name="name"/>
+                    <field name="color"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="weekday_model_act_window" model="ir.actions.act_window">
+            <field name="name">Week Days</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">weekday.model</field>
+            <field name="view_mode">tree</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    There is no examples click here to add new Week Days.
+                </p>
+            </field>
+        </record>
+
+        <menuitem name="Week Days" id="weekday_model_menu" parent="shuttle_settings_menu" action="weekday_model_act_window"/>
+
+    </data>
+</odoo>
