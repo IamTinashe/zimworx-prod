@@ -10,6 +10,58 @@ class CustomerVendorStatement(models.AbstractModel):
     """Model of Customer Activity Statement"""
     _name = 'report.customer_vendor_statement.statement'
 
+    def _get_account_initial_balance(self, company_id, partner_ids, date_start):
+        res = {partner_id: [] for partner_id in partner_ids}
+        partners = ', '.join(map(str, partner_ids))
+        date_start = datetime.strptime(date_start, DEFAULT_SERVER_DATE_FORMAT).date()
+
+        q1_query = self._initial_balance_sql_q1(partners, date_start)
+        q2_query = self._initial_balance_sql_q2(company_id)
+
+        self.env.cr.execute(f"""
+            WITH Q1 AS ({q1_query}), Q2 AS ({q2_query})
+            SELECT partner_id, currency_id, balance
+            FROM Q2
+        """)
+
+        for row in self.env.cr.dictfetchall():
+            res[row.pop('partner_id')].append(row)
+
+        return res
+
+    def _initial_balance_sql_q1(self, partners, date_start):
+        partners_list = ', '.join(map(str, partners))  # Ensure partners are safely formatted as strings
+        return f"""
+            SELECT l.partner_id, l.currency_id, l.company_id,
+            SUM(
+                CASE WHEN l.currency_id IS NOT NULL AND l.amount_currency > 0.0 THEN l.amount_currency
+                     ELSE l.debit
+                END
+            ) AS debit,
+            SUM(
+                CASE WHEN l.currency_id IS NOT NULL AND l.amount_currency < 0.0 THEN -l.amount_currency
+                     ELSE l.credit
+                END
+            ) AS credit
+            FROM account_move_line l
+            JOIN account_move m ON l.move_id = m.id
+            JOIN account_account a ON l.account_id = a.id
+            WHERE l.partner_id IN ({partners_list}) AND a.account_type = 'income'
+            AND l.date <= '{date_start}'
+            AND NOT l.blocked
+            GROUP BY l.partner_id, l.currency_id, l.company_id
+        """
+
+    def _initial_balance_sql_q2(self, company_id):
+        return f"""
+            SELECT Q1.partner_id, SUM(Q1.debit - Q1.credit) AS balance,
+            COALESCE(Q1.currency_id, c.currency_id) AS currency_id
+            FROM Q1
+            JOIN res_company c ON c.id = Q1.company_id
+            WHERE c.id = {company_id}
+            GROUP BY Q1.partner_id, Q1.currency_id, c.currency_id
+        """
+
     def _format_date_to_partner_lang(self, str_date, partner_id):
         lang_code = self.env['res.partner'].browse(partner_id).lang
         lang_id = self.env['res.lang']._lang_get(lang_code)
@@ -17,71 +69,43 @@ class CustomerVendorStatement(models.AbstractModel):
         date = str_date
         return date
 
-    def _initial_balance_sql_q1(self, partners, date_start):
-        return """
-            SELECT l.partner_id, l.currency_id, l.company_id,
-            CASE WHEN l.currency_id is not null AND l.amount_currency > 0.0
-                THEN sum(l.amount_currency)
-                ELSE sum(l.debit)
-            END as debit,
-            CASE WHEN l.currency_id is not null AND l.amount_currency < 0.0
-                THEN sum(l.amount_currency * (-1))
-                ELSE sum(l.credit)
-            END as credit
-            FROM account_move_line l
-            JOIN account_move m ON (l.move_id = m.id)
-            WHERE l.partner_id IN (%s) AND l.account_type = 'receivable'
-                                AND l.date <= '%s' AND not l.blocked
-            GROUP BY l.partner_id, l.currency_id, l.amount_currency,
-                                l.company_id
-        """ % (partners, date_start)
-
     def _initial_balance_sql_q1_payable(self, partners, date_start):
-        return """
+        return f"""
             SELECT l.partner_id, l.currency_id, l.company_id,
             CASE WHEN l.currency_id is not null AND l.amount_currency > 0.0
-                THEN sum(l.amount_currency)
-                ELSE sum(l.debit)
+                THEN SUM(l.amount_currency)
+                ELSE SUM(l.debit)
             END as debit,
             CASE WHEN l.currency_id is not null AND l.amount_currency < 0.0
-                THEN sum(l.amount_currency * (-1))
-                ELSE sum(l.credit)
+                THEN SUM(l.amount_currency * (-1))
+                ELSE SUM(l.credit)
             END as credit
             FROM account_move_line l
-            JOIN account_move m ON (l.move_id = m.id)
-            WHERE l.partner_id IN (%s) AND l.account_type = 'payable'
-                                AND l.date <= '%s' AND not l.blocked
-            GROUP BY l.partner_id, l.currency_id, l.amount_currency,
-                                l.company_id
-        """ % (partners, date_start)
+            JOIN account_move m ON l.move_id = m.id
+            JOIN account_account a ON l.account_id = a.id
+            WHERE l.partner_id IN ({partners}) AND l.account_type = 'expense'
+                  AND l.date <= '{date_start}' AND not l.blocked
+            GROUP BY l.partner_id, l.currency_id, l.company_id
+        """
 
     def _initial_balance_sql_q1_receivable_and_payable(self, partners, date_start):
-        return """
+        return f"""
             SELECT l.partner_id, l.currency_id, l.company_id,
             CASE WHEN l.currency_id is not null AND l.amount_currency > 0.0
-                THEN sum(l.amount_currency)
-                ELSE sum(l.debit)
+                THEN SUM(l.amount_currency)
+                ELSE SUM(l.debit)
             END as debit,
             CASE WHEN l.currency_id is not null AND l.amount_currency < 0.0
-                THEN sum(l.amount_currency * (-1))
-                ELSE sum(l.credit)
+                THEN SUM(l.amount_currency * (-1))
+                ELSE SUM(l.credit)
             END as credit
             FROM account_move_line l
-            JOIN account_move m ON (l.move_id = m.id)
-            WHERE l.partner_id IN (%s) AND (l.account_type = 'payable' OR l.account_type = 'receivable')
-                                AND l.date <= '%s' AND not l.blocked
-            GROUP BY l.partner_id, l.currency_id, l.amount_currency,
-                                l.company_id
-        """ % (partners, date_start)
-
-    def _initial_balance_sql_q2(self, company_id):
-        return """
-            SELECT Q1.partner_id, debit-credit AS balance,
-            COALESCE(Q1.currency_id, c.currency_id) AS currency_id
-            FROM Q1
-            JOIN res_company c ON (c.id = Q1.company_id)
-            WHERE c.id = %s
-        """ % company_id
+            JOIN account_move m ON l.move_id = m.id
+            JOIN account_account a ON l.account_id = a.id
+            WHERE l.partner_id IN ({partners}) AND (l.account_type = 'expense' OR l.account_type = 'income')
+                  AND l.date <= '{date_start}' AND not l.blocked
+            GROUP BY l.partner_id, l.currency_id, l.company_id
+        """
 
     def _initial_balance_sql_q2_payable(self, company_id):
         return """
@@ -93,27 +117,13 @@ class CustomerVendorStatement(models.AbstractModel):
         """ % company_id
 
     def _initial_balance_sql_q2_receivable_and_payable(self, company_id):
-        return """
-            SELECT Q1.partner_id, debit-credit AS balance,
+        return f"""
+            SELECT Q1.partner_id, debit - credit AS balance,
             COALESCE(Q1.currency_id, c.currency_id) AS currency_id
             FROM Q1
-            JOIN res_company c ON (c.id = Q1.company_id)
-            WHERE c.id = %s
-        """ % company_id
-
-    def _get_account_initial_balance(self, company_id, partner_ids,
-                                     date_start):
-        res = dict(map(lambda x: (x, []), partner_ids))
-        partners = ', '.join([str(i) for i in partner_ids])
-        date_start = datetime.strptime(
-            date_start, DEFAULT_SERVER_DATE_FORMAT).date()
-        self.env.cr.execute("""WITH Q1 AS (%s), Q2 AS (%s)
-        SELECT partner_id, currency_id, balance
-        FROM Q2""" % (self._initial_balance_sql_q1(partners, date_start),
-                      self._initial_balance_sql_q2(company_id)))
-        for row in self.env.cr.dictfetchall():
-            res[row.pop('partner_id')].append(row)
-        return res
+            JOIN res_company c ON c.id = Q1.company_id
+            WHERE c.id = {company_id}
+        """
 
     def _get_account_initial_balance_payable(self, company_id, partner_ids,
                                      date_start):
@@ -144,16 +154,16 @@ class CustomerVendorStatement(models.AbstractModel):
         return res
 
     def _display_lines_sql_q1(self, partners, date_start, date_end):
-        return """
+        return f"""
             SELECT m.name AS move_id, aa.code AS account_id, l.partner_id, l.date, l.name,
-                                l.ref, l.blocked, l.currency_id, l.company_id,
+                   l.ref, l.blocked, l.currency_id, l.company_id,
             CASE WHEN (l.currency_id is not null AND l.amount_currency > 0.0)
-                THEN sum(l.amount_currency)
-                ELSE sum(l.debit)
+                THEN SUM(l.amount_currency)
+                ELSE SUM(l.debit)
             END as debit,
             CASE WHEN (l.currency_id is not null AND l.amount_currency < 0.0)
-                THEN sum(l.amount_currency * (-1))
-                ELSE sum(l.credit)
+                THEN SUM(l.amount_currency * (-1))
+                ELSE SUM(l.credit)
             END as credit,
             CASE WHEN l.date_maturity is null
                 THEN l.date
@@ -162,64 +172,63 @@ class CustomerVendorStatement(models.AbstractModel):
             FROM account_move_line l
             JOIN account_move m ON (l.move_id = m.id)
             JOIN account_account aa ON (l.account_id = aa.id)
-            WHERE l.partner_id IN (%s) AND l.account_type = 'receivable'
-                                AND '%s' < l.date AND l.date <= '%s'
-            GROUP BY l.partner_id, m.name, aa.id, l.date, l.date_maturity, l.name,
-                                l.ref, l.blocked, l.currency_id,
-                                l.amount_currency, l.company_id
-        """ % (partners, date_start, date_end)
+            WHERE l.partner_id IN ({partners}) AND l.account_type = 'income'
+                  AND '{date_start}' <= l.date AND l.date <= '{date_end}'
+            GROUP BY l.partner_id, m.name, aa.code, l.date, l.date_maturity, l.name,
+                     l.ref, l.blocked, l.currency_id, l.amount_currency, l.company_id
+        """
 
     def _display_lines_sql_q1_payable(self, partners, date_start, date_end):
-        return """
+        return f"""
             SELECT m.name AS move_id, aa.code AS account_id, l.partner_id, l.date, l.name,
-                                l.ref, l.blocked, l.currency_id, l.company_id,
+                                    l.ref, l.blocked, l.currency_id, l.company_id,
             CASE WHEN (l.currency_id is not null AND l.amount_currency > 0.0)
-                THEN sum(l.amount_currency)
-                ELSE sum(l.debit)
+                THEN SUM(l.amount_currency)
+                ELSE SUM(l.debit)
             END as debit,
             CASE WHEN (l.currency_id is not null AND l.amount_currency < 0.0)
-                THEN sum(l.amount_currency * (-1))
-                ELSE sum(l.credit)
+                THEN SUM(l.amount_currency * (-1))
+                ELSE SUM(l.credit)
             END as credit,
             CASE WHEN l.date_maturity is null
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
             FROM account_move_line l
-            JOIN account_move m ON (l.move_id = m.id)
-            JOIN account_account aa ON (l.account_id = aa.id)
-            WHERE l.partner_id IN (%s) AND l.account_type = 'payable'
-                                AND '%s' < l.date AND l.date <= '%s'
+            JOIN account_move m ON l.move_id = m.id
+            JOIN account_account aa ON l.account_id = aa.id
+            WHERE l.partner_id IN ({partners}) AND l.account_type = 'expense'
+                  AND '{date_start}' < l.date AND l.date <= '{date_end}'
             GROUP BY l.partner_id, m.name, aa.id, l.date, l.date_maturity, l.name,
-                                l.ref, l.blocked, l.currency_id,
-                                l.amount_currency, l.company_id
-        """ % (partners, date_start, date_end)
+                                    l.ref, l.blocked, l.currency_id,
+                                    l.amount_currency, l.company_id
+        """
 
     def _display_lines_sql_q1_receivable_and_payable(self, partners, date_start, date_end):
-        return """
+        return f"""
             SELECT m.name AS move_id, aa.code AS account_id, l.partner_id, l.date, l.name,
                                 l.ref, l.blocked, l.currency_id, l.company_id,
             CASE WHEN (l.currency_id is not null AND l.amount_currency > 0.0)
-                THEN sum(l.amount_currency)
-                ELSE sum(l.debit)
+                THEN SUM(l.amount_currency)
+                ELSE SUM(l.debit)
             END as debit,
             CASE WHEN (l.currency_id is not null AND l.amount_currency < 0.0)
-                THEN sum(l.amount_currency * (-1))
-                ELSE sum(l.credit)
+                THEN SUM(l.amount_currency * (-1))
+                ELSE SUM(l.credit)
             END as credit,
             CASE WHEN l.date_maturity is null
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
             FROM account_move_line l
-            JOIN account_move m ON (l.move_id = m.id)
-            JOIN account_account aa ON (l.account_id = aa.id)
-            WHERE l.partner_id IN (%s) AND (l.account_type = 'payable' OR l.account_type = 'receivable') 
-                                AND '%s' < l.date AND l.date <= '%s'
+            JOIN account_move m ON l.move_id = m.id
+            JOIN account_account aa ON l.account_id = aa.id
+            WHERE l.partner_id IN ({partners}) AND (l.account_type = 'expense' OR l.account_type = 'income')
+                  AND '{date_start}' < l.date AND l.date <= '{date_end}'
             GROUP BY l.partner_id, m.name, aa.id, l.date, l.date_maturity, l.name,
                                 l.ref, l.blocked, l.currency_id,
                                 l.amount_currency, l.company_id
-        """ % (partners, date_start, date_end)
+        """
 
     def _display_lines_sql_q2(self, company_id):
         return """
@@ -251,21 +260,23 @@ class CustomerVendorStatement(models.AbstractModel):
             WHERE c.id = %s
         """ % company_id
 
-    def _get_account_display_lines(self, company_id, partner_ids, date_start,
-                                   date_end):
+    def _get_account_display_lines(self, company_id, partner_ids, date_start, date_end):
         res = dict(map(lambda x: (x, []), partner_ids))
         partners = ', '.join([str(i) for i in partner_ids])
-        date_start = datetime.strptime(
-            date_start, DEFAULT_SERVER_DATE_FORMAT).date()
-        date_end = datetime.strptime(
-            date_end, DEFAULT_SERVER_DATE_FORMAT).date()
-        self.env.cr.execute("""WITH Q1 AS (%s), Q2 AS (%s)
-        SELECT partner_id, move_id, account_id, date, date_maturity, name, ref, debit,
-                            credit, amount, blocked, currency_id
-        FROM Q2
-        ORDER BY date, date_maturity, move_id""" % (
-            self._display_lines_sql_q1(partners, date_start, date_end),
-            self._display_lines_sql_q2(company_id)))
+        date_start = datetime.strptime(date_start, DEFAULT_SERVER_DATE_FORMAT).date()
+        date_end = datetime.strptime(date_end, DEFAULT_SERVER_DATE_FORMAT).date()
+
+        q1_query = self._display_lines_sql_q1(partners, date_start, date_end)
+        q2_query = self._display_lines_sql_q2(company_id)
+
+        self.env.cr.execute(f"""
+            WITH Q1 AS ({q1_query}), Q2 AS ({q2_query})
+            SELECT partner_id, move_id, account_id, date, date_maturity, name, ref, debit,
+                   credit, amount, blocked, currency_id
+            FROM Q2
+            ORDER BY date, date_maturity, move_id
+        """)
+
         for row in self.env.cr.dictfetchall():
             res[row.pop('partner_id')].append(row)
         return res
@@ -309,226 +320,226 @@ class CustomerVendorStatement(models.AbstractModel):
         return res
 
     def _show_buckets_sql_q1(self, partners, date_start, date_end):
-        return """
+        return f"""
             SELECT l.partner_id, l.currency_id, l.company_id, l.move_id,
             CASE WHEN l.balance > 0.0
-                THEN l.balance - sum(coalesce(pd.amount, 0.0))
-                ELSE l.balance + sum(coalesce(pc.amount, 0.0))
+                THEN l.balance - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.balance + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due,
             CASE WHEN l.balance > 0.0
-                THEN l.amount_currency - sum(coalesce(pd.amount, 0.0))
-                ELSE l.amount_currency + sum(coalesce(pc.amount, 0.0))
+                THEN l.amount_currency - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.amount_currency + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due_currency,
             CASE WHEN l.date_maturity is null
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
             FROM account_move_line l
-            JOIN account_move m ON (l.move_id = m.id)
-            LEFT JOIN (SELECT pr.*
+            JOIN account_move m ON l.move_id = m.id
+            JOIN account_account aa ON l.account_id = aa.id
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.credit_move_id = l2.id
-                WHERE '%s' <= l2.date
-                AND l2.date <= '%s'
+                INNER JOIN account_move_line l2 ON pr.credit_move_id = l2.id
+                WHERE '{date_start}' <= l2.date AND l2.date <= '{date_end}'
             ) as pd ON pd.debit_move_id = l.id
-            LEFT JOIN (SELECT pr.*
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.debit_move_id = l2.id
-                WHERE '%s' <= l2.date
-                AND l2.date <= '%s'
+                INNER JOIN account_move_line l2 ON pr.debit_move_id = l2.id
+                WHERE '{date_start}' <= l2.date AND l2.date <= '{date_end}'
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND l.account_type = 'receivable'
-                AND '%s' <= l.date AND l.date <= '%s' AND not l.reconciled AND not l.blocked
+            WHERE l.partner_id IN ({partners}) AND l.account_type = 'income'
+                AND '{date_start}' <= l.date AND l.date <= '{date_end}' AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
                                 l.amount_currency, l.balance, l.move_id,
                                 l.company_id
-        """ % (date_start, date_end, date_start, date_end, partners, date_start, date_end)
+        """
 
     def _show_buckets_sql_q1_payable(self, partners, date_start, date_end):
-        return """
+        return f"""
             SELECT l.partner_id, l.currency_id, l.company_id, l.move_id,
             CASE WHEN l.balance > 0.0
-                THEN l.balance - sum(coalesce(pd.amount, 0.0))
-                ELSE l.balance + sum(coalesce(pc.amount, 0.0))
+                THEN l.balance - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.balance + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due,
             CASE WHEN l.balance > 0.0
-                THEN l.amount_currency - sum(coalesce(pd.amount, 0.0))
-                ELSE l.amount_currency + sum(coalesce(pc.amount, 0.0))
+                THEN l.amount_currency - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.amount_currency + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due_currency,
             CASE WHEN l.date_maturity is null
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
             FROM account_move_line l
-            JOIN account_move m ON (l.move_id = m.id)
-            LEFT JOIN (SELECT pr.*
+            JOIN account_move m ON l.move_id = m.id
+            JOIN account_account aa ON l.account_id = aa.id
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.credit_move_id = l2.id
-                WHERE '%s' <= l2.date
-                AND l2.date <= '%s'
+                INNER JOIN account_move_line l2 ON pr.credit_move_id = l2.id
+                WHERE '{date_start}' <= l2.date AND l2.date <= '{date_end}'
             ) as pd ON pd.debit_move_id = l.id
-            LEFT JOIN (SELECT pr.*
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.debit_move_id = l2.id
-                WHERE '%s' <= l2.date
-                AND l2.date <= '%s'
+                INNER JOIN account_move_line l2 ON pr.debit_move_id = l2.id
+                WHERE '{date_start}' <= l2.date AND l2.date <= '{date_end}'
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND l.account_type = 'payable'
-                AND '%s' <= l.date AND l.date <= '%s' AND not l.reconciled AND not l.blocked
+            WHERE l.partner_id IN ({partners}) AND l.account_type = 'expense'
+                AND '{date_start}' <= l.date AND l.date <= '{date_end}' AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
-                                l.amount_currency, l.balance, l.move_id,
-                                l.company_id
-        """ % (date_start, date_end, date_start, date_end, partners, date_start, date_end)
+                        l.amount_currency, l.balance, l.move_id,
+                        l.company_id
+        """
 
     def _show_buckets_sql_q1_receivable_and_payable(self, partners, date_start, date_end):
-        return """
+        return f"""
             SELECT l.partner_id, l.currency_id, l.company_id, l.move_id,
             CASE WHEN l.balance > 0.0
-                THEN l.balance - sum(coalesce(pd.amount, 0.0))
-                ELSE l.balance + sum(coalesce(pc.amount, 0.0))
+                THEN l.balance - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.balance + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due,
             CASE WHEN l.balance > 0.0
-                THEN l.amount_currency - sum(coalesce(pd.amount, 0.0))
-                ELSE l.amount_currency + sum(coalesce(pc.amount, 0.0))
+                THEN l.amount_currency - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.amount_currency + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due_currency,
             CASE WHEN l.date_maturity is null
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
             FROM account_move_line l
-            JOIN account_move m ON (l.move_id = m.id)
-            LEFT JOIN (SELECT pr.*
+            JOIN account_move m ON l.move_id = m.id
+            JOIN account_account aa ON l.account_id = aa.id
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.credit_move_id = l2.id
-                WHERE '%s' <= l2.date
-                AND l2.date <= '%s'
+                INNER JOIN account_move_line l2 ON pr.credit_move_id = l2.id
+                WHERE '{date_start}' <= l2.date AND l2.date <= '{date_end}'
             ) as pd ON pd.debit_move_id = l.id
-            LEFT JOIN (SELECT pr.*
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.debit_move_id = l2.id
-                WHERE '%s' <= l2.date
-                AND l2.date <= '%s'
+                INNER JOIN account_move_line l2 ON pr.debit_move_id = l2.id
+                WHERE '{date_start}' <= l2.date AND l2.date <= '{date_end}'
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND (l.account_type = 'payable' OR l.account_type = 'receivable') 
-                AND '%s' <= l.date AND l.date <= '%s' AND not l.reconciled AND not l.blocked
+            WHERE l.partner_id IN ({partners}) AND (l.account_type = 'expense' OR l.account_type = 'income') 
+                AND '{date_start}' <= l.date AND l.date <= '{date_end}' AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
                                 l.amount_currency, l.balance, l.move_id,
                                 l.company_id
-        """ % (date_start, date_end, date_start, date_end, partners, date_start, date_end)
+        """
 
     def _show_overdue_sql_q1(self, partners, date_end):
-        return """
+        return f"""
             SELECT l.partner_id, l.currency_id, l.company_id, l.move_id,
             CASE WHEN l.balance > 0.0
-                THEN l.balance - sum(coalesce(pd.amount, 0.0))
-                ELSE l.balance + sum(coalesce(pc.amount, 0.0))
+                THEN l.balance - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.balance + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due,
             CASE WHEN l.balance > 0.0
-                THEN l.amount_currency - sum(coalesce(pd.amount, 0.0))
-                ELSE l.amount_currency + sum(coalesce(pc.amount, 0.0))
+                THEN l.amount_currency - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.amount_currency + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due_currency,
             CASE WHEN l.date_maturity is null
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
             FROM account_move_line l
-            JOIN account_move m ON (l.move_id = m.id)
-            LEFT JOIN (SELECT pr.*
+            JOIN account_move m ON l.move_id = m.id
+            JOIN account_account a ON l.account_id = a.id
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.credit_move_id = l2.id
-                WHERE '%s' <= l2.date
+                INNER JOIN account_move_line l2 ON pr.credit_move_id = l2.id
+                WHERE '{date_end}' <= l2.date
             ) as pd ON pd.debit_move_id = l.id
-            LEFT JOIN (SELECT pr.*
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.debit_move_id = l2.id
-                WHERE '%s' <= l2.date
+                INNER JOIN account_move_line l2 ON pr.debit_move_id = l2.id
+                WHERE '{date_end}' <= l2.date
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND l.account_type = 'receivable' 
+            WHERE l.partner_id IN ({partners}) AND l.account_type = 'income'
                 AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
-                                l.amount_currency, l.balance, l.move_id,
-                                l.company_id
-        """ % (date_end, date_end, partners)
+                        l.amount_currency, l.balance, l.move_id,
+                        l.company_id
+        """
 
     def _show_overdue_sql_q1_payable(self, partners, date_end):
-        return """
+        return f"""
             SELECT l.partner_id, l.currency_id, l.company_id, l.move_id,
             CASE WHEN l.balance > 0.0
-                THEN l.balance - sum(coalesce(pd.amount, 0.0))
-                ELSE l.balance + sum(coalesce(pc.amount, 0.0))
+                THEN l.balance - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.balance + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due,
             CASE WHEN l.balance > 0.0
-                THEN l.amount_currency - sum(coalesce(pd.amount, 0.0))
-                ELSE l.amount_currency + sum(coalesce(pc.amount, 0.0))
+                THEN l.amount_currency - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.amount_currency + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due_currency,
             CASE WHEN l.date_maturity is null
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
             FROM account_move_line l
-            JOIN account_move m ON (l.move_id = m.id)
-            LEFT JOIN (SELECT pr.*
+            JOIN account_move m ON l.move_id = m.id
+            JOIN account_account aa ON l.account_id = aa.id
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.credit_move_id = l2.id
-                WHERE '%s' <= l2.date
+                INNER JOIN account_move_line l2 ON pr.credit_move_id = l2.id
+                WHERE '{date_end}' <= l2.date
             ) as pd ON pd.debit_move_id = l.id
-            LEFT JOIN (SELECT pr.*
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.debit_move_id = l2.id
-                WHERE '%s' <= l2.date
+                INNER JOIN account_move_line l2 ON pr.debit_move_id = l2.id
+                WHERE '{date_end}' <= l2.date
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND l.account_type = 'payable' 
+            WHERE l.partner_id IN ({partners}) AND l.account_type = 'expense'
                 AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
-                                l.amount_currency, l.balance, l.move_id,
-                                l.company_id
-        """ % (date_end, date_end, partners)
+                        l.amount_currency, l.balance, l.move_id,
+                        l.company_id
+        """
 
     def _show_overdue_sql_q1_receivable_and_payable(self, partners, date_end):
-        return """
+        return f"""
             SELECT l.partner_id, l.currency_id, l.company_id, l.move_id,
             CASE WHEN l.balance > 0.0
-                THEN l.balance - sum(coalesce(pd.amount, 0.0))
-                ELSE l.balance + sum(coalesce(pc.amount, 0.0))
+                THEN l.balance - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.balance + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due,
             CASE WHEN l.balance > 0.0
-                THEN l.amount_currency - sum(coalesce(pd.amount, 0.0))
-                ELSE l.amount_currency + sum(coalesce(pc.amount, 0.0))
+                THEN l.amount_currency - SUM(COALESCE(pd.amount, 0.0))
+                ELSE l.amount_currency + SUM(COALESCE(pc.amount, 0.0))
             END AS open_due_currency,
             CASE WHEN l.date_maturity is null
                 THEN l.date
                 ELSE l.date_maturity
             END as date_maturity
             FROM account_move_line l
-            JOIN account_move m ON (l.move_id = m.id)
-            LEFT JOIN (SELECT pr.*
+            JOIN account_move m ON l.move_id = m.id
+            JOIN account_account aa ON l.account_id = aa.id
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.credit_move_id = l2.id
-                WHERE '%s' <= l2.date
+                INNER JOIN account_move_line l2 ON pr.credit_move_id = l2.id
+                WHERE '{date_end}' <= l2.date
             ) as pd ON pd.debit_move_id = l.id
-            LEFT JOIN (SELECT pr.*
+            LEFT JOIN (
+                SELECT pr.*
                 FROM account_partial_reconcile pr
-                INNER JOIN account_move_line l2
-                ON pr.debit_move_id = l2.id
-                WHERE '%s' <= l2.date
+                INNER JOIN account_move_line l2 ON pr.debit_move_id = l2.id
+                WHERE '{date_end}' <= l2.date
             ) as pc ON pc.credit_move_id = l.id
-            WHERE l.partner_id IN (%s) AND (l.account_type = 'payable' OR l.account_type = 'receivable') 
+            WHERE l.partner_id IN ({partners}) AND (l.account_type = 'expense' OR l.account_type = 'income') 
                 AND not l.reconciled AND not l.blocked
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
-                                l.amount_currency, l.balance, l.move_id,
-                                l.company_id
-        """ % (date_end, date_end, partners)
+                        l.amount_currency, l.balance, l.move_id,
+                        l.company_id
+        """
 
     def _show_buckets_sql_q2(self, today, minus_30, minus_60, minus_90):
         return """
@@ -573,20 +584,20 @@ class CustomerVendorStatement(models.AbstractModel):
                minus_60, minus_90, minus_90)
 
     def _show_overdue_sql_q2(self, date_end):
-        return """
+        return f"""
             SELECT partner_id, currency_id, date_maturity, open_due,
                             open_due_currency, move_id, company_id,
             CASE
-                WHEN '%s' <= date_maturity AND currency_id is null
+                WHEN '{date_end}' <= date_maturity AND currency_id is null
                                 THEN open_due
-                WHEN '%s' <= date_maturity AND currency_id is not null
+                WHEN '{date_end}' <= date_maturity AND currency_id is not null
                                 THEN open_due_currency
                 ELSE 0.0
             END as current
             FROM Q1
             GROUP BY partner_id, currency_id, date_maturity, open_due,
                                 open_due_currency, move_id, company_id
-        """ % (date_end, date_end)
+        """
 
     def _show_buckets_sql_q2_receivable_and_payable(self,
         today, minus_30, minus_60, minus_90):
@@ -701,13 +712,13 @@ class CustomerVendorStatement(models.AbstractModel):
         """ % company_id
 
     def _show_overdue_sql_q3(self, company_id):
-        return """
+        return f"""
             SELECT Q2.partner_id, current,
             COALESCE(Q2.currency_id, c.currency_id) AS currency_id
             FROM Q2
-            JOIN res_company c ON (c.id = Q2.company_id)
-            WHERE c.id = %s
-        """ % company_id
+            JOIN res_company c ON c.id = Q2.company_id
+            WHERE c.id = {company_id}
+        """
 
     def _show_buckets_sql_q4(self):
         return """
@@ -899,210 +910,83 @@ class CustomerVendorStatement(models.AbstractModel):
         date_start = data['date_start']
         date_end = data['date_end']
         today = fields.Date.today()
-        if data['report_type'] == 'receivable':
-            overdues_to_display = {}
-            balance_start_to_display, buckets_to_display = {}, {}
-            lines_to_display, amount_due = {}, {}
-            currency_to_display = {}
-            today_display, date_start_display, date_end_display = {}, {}, {}
 
-            balance_start = self._get_account_initial_balance(
-                company_id, partner_ids, date_start)
-            for partner_id in partner_ids:
-                balance_start_to_display[partner_id] = {}
-                for line in balance_start[partner_id]:
-                    currency = self.env['res.currency'].browse(line['currency_id'])
-                    if currency not in balance_start_to_display[partner_id]:
-                        balance_start_to_display[partner_id][currency] = []
-                    balance_start_to_display[partner_id][currency] = \
-                        line['balance']
+        # Initialize dictionaries
+        overdues_to_display = {}
+        balance_start_to_display, buckets_to_display = {}, {}
+        lines_to_display, amount_due = {}, {}
+        currency_to_display = {}
+        today_display, date_start_display, date_end_display = {}, {}, {}
 
-            lines = self._get_account_display_lines(
-                company_id, partner_ids, date_start, date_end)
-            for partner_id in partner_ids:
-                lines_to_display[partner_id], amount_due[partner_id] = {}, {}
-                currency_to_display[partner_id] = {}
-                today_display[partner_id] = self._format_date_to_partner_lang(
-                    today, partner_id)
-                date_start_display[partner_id] = self._format_date_to_partner_lang(
-                    date_start, partner_id)
-                date_end_display[partner_id] = self._format_date_to_partner_lang(
-                    date_end, partner_id)
-                for line in lines[partner_id]:
-                    currency = self.env['res.currency'].browse(line['currency_id'])
-                    if currency not in lines_to_display[partner_id]:
-                        lines_to_display[partner_id][currency] = []
-                        currency_to_display[partner_id][currency] = currency
-                        if currency in balance_start_to_display[partner_id]:
-                            amount_due[partner_id][currency] = \
-                                balance_start_to_display[partner_id][currency]
-                        else:
-                            amount_due[partner_id][currency] = 0.0
-                    if not line['blocked']:
-                        amount_due[partner_id][currency] += line['amount']
-                    line['balance'] = amount_due[partner_id][currency]
-                    line['date'] = self._format_date_to_partner_lang(
-                        line['date'], partner_id)
-                    line['date_maturity'] = self._format_date_to_partner_lang(
-                        line['date_maturity'], partner_id)
-                    lines_to_display[partner_id][currency].append(line)
+        # Initialize variables to avoid UnboundLocalError
+        balance_start = {}
+        lines = {}
+        overdues = {}
+        buckets = {}
 
-            overdues = self._get_account_show_overdue(
-                company_id, partner_ids, date_end)
-            for partner_id in partner_ids:
-                overdues_to_display[partner_id] = {}
-                for line in overdues[partner_id]:
-                    currency = self.env['res.currency'].browse(
-                        line['currency_id'])
-                    overdues_to_display[partner_id][currency] = line['current']
+        # Assign values based on report_type
+        if data['report_type'] == 'income':
+            balance_start = self._get_account_initial_balance(company_id, partner_ids, date_start)
+            lines = self._get_account_display_lines(company_id, partner_ids, date_start, date_end)
+            overdues = self._get_account_show_overdue(company_id, partner_ids, date_end)
+            if data['show_aging_buckets']:
+                buckets = self._get_account_show_buckets(company_id, partner_ids, date_start, date_end)
+
+        elif data['report_type'] == 'expense':
+            balance_start = self._get_account_initial_balance_payable(company_id, partner_ids, date_start)
+            lines = self._get_account_display_lines_payable(company_id, partner_ids, date_start, date_end)
+            overdues = self._get_account_show_overdue_payable(company_id, partner_ids, date_end)
+            if data['show_aging_buckets']:
+                buckets = self._get_account_show_buckets_payable(company_id, partner_ids, date_start, date_end)
+
+        elif data['report_type'] == 'receivable_and_payable':
+            balance_start = self._get_account_initial_balance_receivable_and_payable(company_id, partner_ids,
+                                                                                     date_start)
+            lines = self._get_account_display_lines_receivable_and_payable(company_id, partner_ids, date_start,
+                                                                           date_end)
+            overdues = self._get_account_show_overdue_receivable_and_payable(company_id, partner_ids, date_end)
+            if data['show_aging_buckets']:
+                buckets = self._get_account_show_buckets_receivable_and_payable(company_id, partner_ids, date_start,
+                                                                                date_end)
+
+        for partner_id in partner_ids:
+            today_display[partner_id] = self._format_date_to_partner_lang(today, partner_id)
+            date_start_display[partner_id] = self._format_date_to_partner_lang(date_start, partner_id)
+            date_end_display[partner_id] = self._format_date_to_partner_lang(date_end, partner_id)
+
+            lines_to_display[partner_id], amount_due[partner_id] = {}, {}
+            currency_to_display[partner_id], overdues_to_display[partner_id] = {}, {}
+            balance_start_to_display[partner_id] = {}
+
+            for line in balance_start.get(partner_id, []):
+                currency = self.env['res.currency'].browse(line['currency_id'])
+                balance_start_to_display[partner_id][currency] = line['balance']
+
+            for line in lines.get(partner_id, []):
+                currency = self.env['res.currency'].browse(line['currency_id'])
+                if currency not in lines_to_display[partner_id]:
+                    lines_to_display[partner_id][currency] = []
+                    currency_to_display[partner_id][currency] = currency
+                    amount_due[partner_id][currency] = balance_start_to_display[partner_id].get(currency, 0.0)
+                if not line['blocked']:
+                    amount_due[partner_id][currency] += line['amount']
+                line['balance'] = amount_due[partner_id][currency]
+                line['date'] = self._format_date_to_partner_lang(line['date'], partner_id)
+                line['date_maturity'] = self._format_date_to_partner_lang(line['date_maturity'], partner_id)
+                lines_to_display[partner_id][currency].append(line)
+
+            for line in overdues.get(partner_id, []):
+                currency = self.env['res.currency'].browse(line['currency_id'])
+                overdues_to_display[partner_id][currency] = line['current']
 
             if data['show_aging_buckets']:
-                buckets = self._get_account_show_buckets(
-                    company_id, partner_ids, date_start, date_end)
-                for partner_id in partner_ids:
-                    buckets_to_display[partner_id] = {}
-                    for line in buckets[partner_id]:
-                        currency = self.env['res.currency'].browse(
-                            line['currency_id'])
-                        if currency not in buckets_to_display[partner_id]:
-                            buckets_to_display[partner_id][currency] = []
-                        buckets_to_display[partner_id][currency] = line
-
-        if data['report_type'] == 'payable':
-            balance_start_to_display, buckets_to_display = {}, {}
-            lines_to_display, amount_due = {}, {}
-            currency_to_display = {}
-            overdues_to_display = {}
-            today_display, date_start_display, date_end_display = {}, {}, {}
-
-            balance_start = self._get_account_initial_balance_payable(
-                company_id, partner_ids, date_start)
-            for partner_id in partner_ids:
-                balance_start_to_display[partner_id] = {}
-                for line in balance_start[partner_id]:
+                buckets_to_display[partner_id] = {}
+                for line in buckets.get(partner_id, []):
                     currency = self.env['res.currency'].browse(line['currency_id'])
-                    if currency not in balance_start_to_display[partner_id]:
-                        balance_start_to_display[partner_id][currency] = []
-                    balance_start_to_display[partner_id][currency] = \
-                        line['balance']
-            lines = self._get_account_display_lines_payable(
-                company_id, partner_ids, date_start, date_end)
-            for partner_id in partner_ids:
-                lines_to_display[partner_id], amount_due[partner_id] = {}, {}
-                currency_to_display[partner_id] = {}
-                today_display[partner_id] = self._format_date_to_partner_lang(
-                    today, partner_id)
-                date_start_display[partner_id] = self._format_date_to_partner_lang(
-                    date_start, partner_id)
-                date_end_display[partner_id] = self._format_date_to_partner_lang(
-                    date_end, partner_id)
-                for line in lines[partner_id]:
-                    currency = self.env['res.currency'].browse(line['currency_id'])
-                    if currency not in lines_to_display[partner_id]:
-                        lines_to_display[partner_id][currency] = []
-                        currency_to_display[partner_id][currency] = currency
-                        if currency in balance_start_to_display[partner_id]:
-                            amount_due[partner_id][currency] = \
-                                balance_start_to_display[partner_id][currency]
-                        else:
-                            amount_due[partner_id][currency] = 0.0
-                    if not line['blocked']:
-                        amount_due[partner_id][currency] += line['amount']
-                    line['balance'] = amount_due[partner_id][currency]
-                    line['date'] = self._format_date_to_partner_lang(
-                        line['date'], partner_id)
-                    line['date_maturity'] = self._format_date_to_partner_lang(
-                        line['date_maturity'], partner_id)
-                    lines_to_display[partner_id][currency].append(line)
+                    if currency not in buckets_to_display[partner_id]:
+                        buckets_to_display[partner_id][currency] = []
+                    buckets_to_display[partner_id][currency] = line
 
-            overdues = self._get_account_show_overdue_payable(
-                    company_id, partner_ids, date_end)
-            for partner_id in partner_ids:
-                overdues_to_display[partner_id] = {}
-                for line in overdues[partner_id]:
-                    currency = self.env['res.currency'].browse(
-                        line['currency_id'])
-                    overdues_to_display[partner_id][currency] = line['current']
-
-            if data['show_aging_buckets']:
-                buckets = self._get_account_show_buckets_payable(
-                    company_id, partner_ids, date_start, date_end)
-                for partner_id in partner_ids:
-                    buckets_to_display[partner_id] = {}
-                    for line in buckets[partner_id]:
-                        currency = self.env['res.currency'].browse(
-                            line['currency_id'])
-                        if currency not in buckets_to_display[partner_id]:
-                            buckets_to_display[partner_id][currency] = []
-                        buckets_to_display[partner_id][currency] = line
-
-        if data['report_type'] == 'receivable_and_payable':
-            balance_start_to_display, buckets_to_display = {}, {}
-            lines_to_display, amount_due, amount_overdue = {}, {}, {}
-            currency_to_display = {}
-            overdues_to_display = {}
-            today_display, date_start_display, date_end_display = {}, {}, {}
-            balance_start = self._get_account_initial_balance_receivable_and_payable(
-                company_id, partner_ids, date_start)
-            for partner_id in partner_ids:
-                balance_start_to_display[partner_id] = {}
-                for line in balance_start[partner_id]:
-                    currency = self.env['res.currency'].browse(line['currency_id'])
-                    if currency not in balance_start_to_display[partner_id]:
-                        balance_start_to_display[partner_id][currency] = []
-                    balance_start_to_display[partner_id][currency] = \
-                        line['balance']
-
-            lines = self._get_account_display_lines_receivable_and_payable(
-                company_id, partner_ids, date_start, date_end)
-            for partner_id in partner_ids:
-                lines_to_display[partner_id], amount_due[partner_id] = {}, {}
-                currency_to_display[partner_id] = {}
-                today_display[partner_id] = self._format_date_to_partner_lang(
-                    today, partner_id)
-                date_start_display[partner_id] = self._format_date_to_partner_lang(
-                    date_start, partner_id)
-                date_end_display[partner_id] = self._format_date_to_partner_lang(
-                    date_end, partner_id)
-                for line in lines[partner_id]:
-                    currency = self.env['res.currency'].browse(line['currency_id'])
-                    if currency not in lines_to_display[partner_id]:
-                        lines_to_display[partner_id][currency] = []
-                        currency_to_display[partner_id][currency] = currency
-                        if currency in balance_start_to_display[partner_id]:
-                            amount_due[partner_id][currency] = \
-                                balance_start_to_display[partner_id][currency]
-                        else:
-                            amount_due[partner_id][currency] = 0.0
-                    if not line['blocked']:
-                        amount_due[partner_id][currency] += line['amount']
-                    line['balance'] = amount_due[partner_id][currency]
-                    line['date'] = self._format_date_to_partner_lang(
-                        line['date'], partner_id)
-                    line['date_maturity'] = self._format_date_to_partner_lang(
-                        line['date_maturity'], partner_id)
-                    lines_to_display[partner_id][currency].append(line)
-
-            overdues = self._get_account_show_overdue_receivable_and_payable(
-                company_id, partner_ids, date_end)
-            for partner_id in partner_ids:
-                overdues_to_display[partner_id] = {}
-                for line in overdues[partner_id]:
-                    currency = self.env['res.currency'].browse(
-                        line['currency_id'])
-                    overdues_to_display[partner_id][currency] = line['current']
-
-            if data['show_aging_buckets']:
-                buckets = self._get_account_show_buckets_receivable_and_payable(
-                    company_id, partner_ids, date_start, date_end)
-                for partner_id in partner_ids:
-                    buckets_to_display[partner_id] = {}
-                    for line in buckets[partner_id]:
-                        currency = self.env['res.currency'].browse(
-                            line['currency_id'])
-                        if currency not in buckets_to_display[partner_id]:
-                            buckets_to_display[partner_id][currency] = []
-                        buckets_to_display[partner_id][currency] = line
         return {
             'doc_ids': partner_ids,
             'doc_model': 'res.partner',
