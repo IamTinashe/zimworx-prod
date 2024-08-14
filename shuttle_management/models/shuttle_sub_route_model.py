@@ -11,6 +11,6 @@ class ShuttleSubRoute(models.Model):
     name = fields.Char(string='Sub-Route Name',)
     route_id = fields.Many2one('shuttle_routes.model', string='Main Route', required=True, ondelete='cascade')
     total_employees_available = fields.Integer(string='Total Employees available')
-    start_location = fields.Many2one('route_start_location.model', string='Start Location', required=True)
+    # start_location = fields.Many2one('route_start_location.model', string='Start Location', required=True)
     end_location = fields.Many2one('route_end_location.model', string='End Location', required=True)
 
