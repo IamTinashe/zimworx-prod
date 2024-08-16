@@ -11,7 +11,6 @@ class CrmLeadInheritance(models.Model):
     def onchange_x_studio_seat_type(self):
         """WHEN SEAT TYPE CHANGE TO REPLACEMENT UPDATE x_studio_sales_person WITH user_id"""
         for record in self:
-            print(record.x_studio_seat_type)
-            if record.x_studio_seat_type=='Replacement Seats' and record.x_studio_salesperson==False:
-                record.x_studio_salesperson = record.user_id.id
+            if record.x_studio_seat_type=='Replacement Seats' and not record.x_studio_salesperson:
+                record.x_studio_salesperson= record.user_id.id
 
