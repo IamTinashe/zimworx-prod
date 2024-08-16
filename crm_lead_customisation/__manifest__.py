@@ -9,7 +9,7 @@
     'description': """This is a module to customise CRM LEAD""",
     'category': 'Accounting/Accounting',
     'website': 'https://zimworx.odoo.com/',
-    'depends': ['contacts','mail'],
+    'depends': ['contacts','mail','crm'],
     'data': [
         # security -- data -- views --reports
         # 'wizard/default_views.xml',
