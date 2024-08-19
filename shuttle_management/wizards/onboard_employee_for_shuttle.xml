@@ -5,43 +5,36 @@
             <field name="model">onboard_employee_for_shuttle.wizard</field>
             <field name="arch" type="xml">
                 <form string="Onboard Employee For Shuttle">
-                <div class="alert alert-warning mb-0" attrs="{'invisible': [('route_not_found','!=',True)]}" role="alert">
-                     No Shuttle Found which goes to the Employee's location, <strong>Please consider creating a Route Destination for this and assign a shuttle into that destination</strong>
-                    <br/>
+                <div class="alert alert-warning mb-0" attrs="{'invisible': [('recomodation','!=','negative')]}" role="success">
+                    <field name="quick_note" readonly="1"/>
                  </div>
-                <div class="alert alert-success mb-0" attrs="{'invisible': [('schedule_found','=',False)]}" role="alert">
+                <div class="alert alert-success mb-0" attrs="{'invisible': [('recomodation','!=','positive')]}" role="warning">
                       <field name="quick_note" readonly="1"/>
                     <br/>
                  </div>
-                <div class="alert alert-info mb-0" attrs="{'invisible': [('schedule_found','=',True),('route_not_found','!=',True)]}" role="alert">
-                      <field name="quick_note" readonly="1"/>
-                    <br/>
-                 </div>
-
-
+                    <group>
                         <group>
-                            <group>
-                                <field name="route_not_found" invisible="1"/>
-                                <field name="schedule_found" invisible="1"/>
-                                <field name="shuttle_id" options="{'no_create': True}"/>
-                            </group>
-                            <group>
-                                <field name="employee_location"/>
-                            </group>
-                             <notebook>
-                                 <page name="Shuttle Schedule" >
-                                    <field name="shuttle_schedule_ids" attrs="{'readonly': [('schedule_found','==',True)]}">
-                                        <tree editable="top" >
-                                            <field name="weekday_id" widget="many2many_tags" options="{'color_field': 'color'}"/>
-                                             <field name="departure_time" widget="float_time"/>
-                                             <field name="booked_seating_capacity"/>
-                                            <field name="is_fully_booked"  decoration-danger="is_fully_booked == 'fully_booked'"  decoration-success="is_fully_booked == 'not_fully_booked'"/>
-                                             <field name="max_seating_capacity"/>
-                                        </tree>
-                                    </field>
-                                </page>
-                        </notebook>
+                            <field name="recomodation" invisible="1"/>
+                            <field name="schedule_found" invisible="1"/>
+                            <field name="shuttle_id" options="{'no_create': True}"/>
                         </group>
+                        <group>
+                            <field name="employee_location"/>
+                        </group>
+                         <notebook>
+                             <page name="Shuttle Schedule" >
+                                <field name="shuttle_schedule_ids" attrs="{'readonly': [('schedule_found','==',True)]}">
+                                    <tree editable="top" >
+                                        <field name="weekday_id" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                                         <field name="departure_time" widget="float_time"/>
+                                         <field name="booked_seating_capacity"/>
+                                        <field name="is_fully_booked"  decoration-danger="is_fully_booked == 'fully_booked'"  decoration-success="is_fully_booked == 'not_fully_booked'"/>
+                                         <field name="max_seating_capacity"/>
+                                    </tree>
+                                </field>
+                            </page>
+                    </notebook>
+                    </group>
                     <footer>
                         <button name="action_allocated_schedule" type="object" string="Allocated Shuttle and Schedule" class="oe_highlight" />
                         <button string="Cancel" class="btn-secondary" special="cancel"/>

@@ -18,7 +18,7 @@
                                 <field name="vehicle_registration" style="text-transform: uppercase;"  />
                                 <field name="driver_id"/>
                                 <field name="capacity"/>
-                                <field name="shuttle_route" widget="many2many_tags"/>
+<!--                                <field name="shuttle_route" widget="many2many_tags"/>-->
                             </group>
                             <group>
                                 <field name="service_status"/>
@@ -34,6 +34,7 @@
                                     <tree editable="top">
                                         <field name="weekday_id" widget="many2many_tags" options="{'color_field': 'color'}"/>
                                          <field name="departure_time" widget="float_time"/>
+                                         <field name="shuttle_route" widget="many2many_tags"/>
                                          <field name="booked_seating_capacity"/>
                                         <field name="is_fully_booked"  decoration-danger="is_fully_booked == 'fully_booked'"  decoration-success="is_fully_booked == 'not_fully_booked'"/>
                                          <field name="max_seating_capacity"/>
@@ -58,7 +59,7 @@
                 <tree string="Shuttles">
                     <field name="name"/>
                     <field name="vehicle_registration"/>
-                    <field name="driver_id"/>
+                    <field name="driver_id" />
                     <field name="capacity"/>
                     <field name="service_status" decoration-success="service_status == 'active'" decoration-info="service_status  == 'maintenance'" decoration-danger="service_status == 'inactive'"/>
                     <field name="location"/>

@@ -16,4 +16,6 @@ class ShuttleSchedules(models.Model):
         ('not_fully_booked', 'Not Fully Booked'),
     ],default='not_fully_booked', string='Booking Status')
     weekday_id = fields.Many2many('weekday.model', string='Day', required=True)
+    shuttle_route=fields.Many2many('shuttle_routes.model', string='Shuttle Route')
+
 

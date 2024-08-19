@@ -9,7 +9,7 @@ class ShuttlesModel(models.Model):
 
     name = fields.Char(string='Shuttle Name', required=True)
     vehicle_registration = fields.Char(string='Vehicle Registration', required=True)
-    driver_id = fields.Many2one('hr.employee',string='Driver', required=True)
+    driver_id = fields.Many2one('hr.employee',domain=[('department_id','=',18)], string='Driver', required=True)
     capacity = fields.Integer(string='Seating Capacity', required=True)
     service_status = fields.Selection([
         ('active', 'Active'),

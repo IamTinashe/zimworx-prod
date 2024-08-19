@@ -67,9 +67,9 @@
                                 <b>Address</b>
                                 </span>
                                 <div class="o_address_format">
-                                    <field name="street" placeholder="Street..." class="o_address_street"/>
-                                    <field name="street2" placeholder="Street 2..." class="o_address_street"/>
-                                    <field name="city" placeholder="City" class="o_address_city"/>
+                                    <field name="street" readonly="0" force_save="1" placeholder="Street..." class="o_address_street"/>
+                                    <field name="street2" readonly="0" force_save="1" placeholder="Street 2..." class="o_address_street"/>
+                                    <field name="city" readonly="0" force_save="1" placeholder="City" class="o_address_city"/>
                                 </div>
                                 <field name="mobile_phone" widget="phone"/>
                                 <field name="work_phone" widget="phone"/>
