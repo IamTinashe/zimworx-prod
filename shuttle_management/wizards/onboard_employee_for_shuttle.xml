@@ -5,14 +5,14 @@
             <field name="model">onboard_employee_for_shuttle.wizard</field>
             <field name="arch" type="xml">
                 <form string="Onboard Employee For Shuttle">
-                <div class="alert alert-warning mb-0" attrs="{'invisible': [('recomodation','!=','negative')]}" role="success">
+                    <div class="alert alert-warning mb-0" attrs="{'invisible': [('recomodation','!=','negative')]}" role="alert">
                     <field name="quick_note" readonly="1"/>
                  </div>
-                <div class="alert alert-success mb-0" attrs="{'invisible': [('recomodation','!=','positive')]}" role="warning">
-                      <field name="quick_note" readonly="1"/>
-                    <br/>
-                 </div>
-                    <group>
+                    <div class="alert alert-success mb-0" attrs="{'invisible': [('recomodation','!=','positive')]}" role="alert">
+                          <field name="quick_note" readonly="1"/>
+                    </div>
+                <sheet>
+                     <group>
                         <group>
                             <field name="recomodation" invisible="1"/>
                             <field name="schedule_found" invisible="1"/>
@@ -22,6 +22,19 @@
                             <field name="employee_location"/>
                         </group>
                          <notebook>
+                             <page name="Employee Schedule">
+                                <field name="employee_schedules_ids" >
+                                    <tree editable="top" create="0">
+                                         <field name="weekday_id" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                                         <field name="shuttle_id" />
+                                         <field name="original_id" invisible="1" />
+                                         <field name="shuttle_schedule"   attrs="{'invisible': [('new_schedule','=',True)]}" domain="[('shuttle_id','=', shuttle_id),('is_fully_booked','=','not_fully_booked')]"  />
+                                         <field name="new_schedule"/>
+                                         <field name="shuttle_route" widget="many2many_tags" attrs="{'invisible': [('new_schedule','=',False)],'required': [('new_schedule','=',False)]}" />
+                                         <field name="departure_time" widget="float_time"/>
+                                    </tree>
+                                </field>
+                            </page>
                              <page name="Shuttle Schedule" >
                                 <field name="shuttle_schedule_ids" attrs="{'readonly': [('schedule_found','==',True)]}">
                                     <tree editable="top" >
@@ -30,11 +43,14 @@
                                          <field name="booked_seating_capacity"/>
                                         <field name="is_fully_booked"  decoration-danger="is_fully_booked == 'fully_booked'"  decoration-success="is_fully_booked == 'not_fully_booked'"/>
                                          <field name="max_seating_capacity"/>
+                                         <field name="shuttle_route"/>
                                     </tree>
                                 </field>
                             </page>
                     </notebook>
                     </group>
+                </sheet>
+
                     <footer>
                         <button name="action_allocated_schedule" type="object" string="Allocated Shuttle and Schedule" class="oe_highlight" />
                         <button string="Cancel" class="btn-secondary" special="cancel"/>

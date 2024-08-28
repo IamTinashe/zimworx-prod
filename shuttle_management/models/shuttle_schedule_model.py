@@ -17,5 +17,13 @@ class ShuttleSchedules(models.Model):
     ],default='not_fully_booked', string='Booking Status')
     weekday_id = fields.Many2many('weekday.model', string='Day', required=True)
     shuttle_route=fields.Many2many('shuttle_routes.model', string='Shuttle Route')
+    hr_employee=fields.Many2many('hr.employee', string='Employees')
 
-
+    def name_get(self):
+        result = []
+        for record in self:
+            # Get the names of the weekdays
+            weekdays = ', '.join(record.weekday_id.mapped('name'))
+            name = f"{weekdays} - {record.departure_time}"
+            result.append((record.id, name))
+        return result

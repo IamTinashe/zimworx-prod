@@ -22,6 +22,8 @@
         'views/weekday_model.xml',
         'views/route_start_location_model.xml',
         'views/route_end_location_model.xml',
+        'wizards/shuttle_email_wizard.xml',
+        'views/shuttle_email_template.xml',
         # 'views/default_views.xml',
         # 'report/default_report.xml',
     ],

@@ -15,8 +15,9 @@ class OnboardEmployeeForShuttle(models.TransientModel):
        ('negative','Negative')], string="Recomodation")
     route_not_found = fields.Boolean(default=False)
     schedule_found = fields.Boolean(default=False)
-    shuttle_id = fields.Many2one('shuttles.model', string='Possible Shuttle', required=True)
     shuttle_schedule_ids=fields.One2many('onboard_shuttle_schedule.wizard', 'shuttle_id', string='shuttle_schedule Shuttle')
+    shuttle_id = fields.Many2one('shuttles.model', string='Possible Shuttle', required=True)
+    employee_schedules_ids = fields.One2many('employee_schedules.wizard', 'onboard_employee_for_shuttle_id', string='Employee Schdule', required=True)
 
     @api.model
     def default_get(self, fields):
@@ -63,13 +64,6 @@ class OnboardEmployeeForShuttle(models.TransientModel):
                     res['quick_note'] = f'Sorry the Route {hr_employee_id.street2} exists but could not found any shuttle with such route'
                     res['recomodation'] = 'negative'
                     #handle the scenario that there is no such route which exists therefore no shuttle goes there
-
-
-
-
-
-
-
 
                 # print("some shutttle within that route found", shuttle_sub_routes_id)
                 #
@@ -135,21 +129,85 @@ class OnboardEmployeeForShuttle(models.TransientModel):
                     #         }
                     #         shuttle_lines.append((0, 0, shuttle_line))
                     #     res['shuttle_schedule_ids'] = shuttle_lines
+        #add employee schdule into the wizard for adding the suppose shuttle
+        shuttle_lines=[]
+        for rec in hr_employee_id.employee_schedules_ids:
+            shuttle_lines.append((0, 0,{
+                'weekday_id': rec.weekday_id.ids,
+                'departure_time': rec.departure_time,
+                'original_id': rec.id,
+                'shuttle_schedule': rec.shuttle_schedule.id,
+                'shuttle_id': rec.shuttle_id.id,
+            }))
+        res['employee_schedules_ids'] = shuttle_lines
         return res
 
-
-
-
+    @api.onchange('shuttle_id')
+    def onchange_shuttle_id(self):
+        """MONITOR THE CHANGE OF A SHUTTLE AND FEED THE SHUTTLE SCHEDULE FOR A QUICK VIEW"""
+        for rec in self:
+            # delete current rem,jmcord in shuttle_schedule_ids
+            self.shuttle_schedule_ids = [(5, 0, 0)]
+            shuttle_schedule_ids = []
+            # append new into the selected shuttle_schedule_ids
+            for rec in self.shuttle_id.shuttle_schedule_ids:
+                vals = {
+                    'departure_time': rec.departure_time,
+                    'shuttle_id': self.id,
+                    'booked_seating_capacity': rec.booked_seating_capacity,
+                    'max_seating_capacity': rec.max_seating_capacity,
+                    'is_fully_booked': rec.is_fully_booked,
+                    'weekday_id': rec.weekday_id.ids,
+                }
+                shuttle_schedule_ids.append((0, 0, vals))
+            self.shuttle_schedule_ids = shuttle_schedule_ids
 
     def action_allocated_schedule(self):
-        """THIS FUNCTION IS FOR ONBOARDING A NEW EMPLOYEE TO A SHUTTLE, SCHEDULE AND A DRIVER"""
+        """THIS FUNCTION IS FOR ONBOARDING A NEW EMPLOYEE TO A SHUTTLE AND ITS SCHEDULE"""
+        employee_schedules_ids=[]
+        for rec in self.employee_schedules_ids:
+            original_employee_schedules_id = self.env['employee_schedules.model'].search(
+                [('id', '=', rec.original_id)])
+            #update Employee shuttle with the new schdule
+            if rec.new_schedule != True:
+                #update the employee with the selected new shuttles
+                original_employee_schedules_id.write({
+                    'shuttle_id': rec.shuttle_id.id,
+                    'shuttle_schedule': rec.shuttle_schedule.id,
+                })
+            else:
+                #create a new schedule and attaché the created schedule to that employee
+                shuttle_schedule_id=self.env['shuttle_schedule.model'].create({
+                    'shuttle_id':rec.shuttle_id.id,
+                    'departure_time':rec.departure_time,
+                    'weekday_id':rec.weekday_id,
+                    'shuttle_route':rec.shuttle_route,
+                })
+                #now update the employee schdule with the allocated schdule
+                original_employee_schedules_id.write({
+                    'shuttle_id': rec.shuttle_id.id,
+                    'shuttle_schedule': shuttle_schedule_id.id,
+                })
+        #update status to allocated schdule
+        hr_employee_id = self.env['hr.employee'].search([('id', '=', self._context.get('active_id'))])
+        hr_employee_id.onboarding_stage='allocated_schedule'
 
-        #search a shuttle with possible route for the employee
-        #if found search a route with possible slot
-        #if not found bring every driver available for custom selection
+
+class EmployeeSchedulesIds(models.TransientModel):
+    """THIS DISPLAY SHUTTLE SCHEDULES ON A TEMP LEVEL"""
+    _name = 'employee_schedules.wizard'
+    _description = 'Employee Schedules'
+
+    weekday_id = fields.Many2many('weekday.model', string='Day', required=True)
+    departure_time = fields.Float(string='Departure Time 24hr', required=True)
+    onboard_employee_for_shuttle_id = fields.Many2one('onboard_employee_for_shuttle.wizard', string='Employee Wizard', required=True)
+    shuttle_id = fields.Many2one('shuttles.model', string='Shuttle', required=True)
+    original_id = fields.Integer( string='Original id', required=True)
+    new_schedule = fields.Boolean( string='New Schedule', required=True)
+    shuttle_schedule = fields.Many2one('shuttle_schedule.model',string='Shuttle Schedule')
+    shuttle_route=fields.Many2many('shuttle_routes.model', string='Shuttle Route')
 
 
-        print("Employee Onboarded")
 
 class ShuttleSchedules(models.TransientModel):
     """THIS DISPLAY SHUTTLE SCHEDULES ON A TEMP LEVEL"""
@@ -166,3 +224,5 @@ class ShuttleSchedules(models.TransientModel):
         ('not_fully_booked', 'Not Fully Booked'),
     ],default='not_fully_booked', string='Booking Status')
     weekday_id = fields.Many2many('weekday.model', string='Day', required=True)
+    shuttle_route=fields.Many2many('shuttle_routes.model', string='Shuttle Route')
+

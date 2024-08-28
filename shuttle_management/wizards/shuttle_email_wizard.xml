@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_shuttle_email_wizard_form" model="ir.ui.view">
+        <field name="name">shuttle.email.wizard.form</field>
+        <field name="model">shuttle_email.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Send Shuttle Details Email">
+                <group>
+                    <field name="employee_id"/>
+                    <field name="email_to"/>
+                    <field name="subject"/>
+                    <field name="body"/>
+                </group>
+                <footer>
+                    <button name="send_email" string="Send Email" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_shuttle_email_wizard" model="ir.actions.act_window">
+        <field name="name">Send Shuttle Details Email</field>
+        <field name="res_model">shuttle_email.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_employee_id': active_id}</field>
+    </record>
+
+
+</odoo>
