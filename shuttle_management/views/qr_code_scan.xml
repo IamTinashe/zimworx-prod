@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- shuttle_templates.xml -->
+<odoo>
+    <template id="qr_scan_template" name="QR Code Scan">
+        <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+            <link rel="stylesheet" href="/shuttle_management/static/scan_controller.css"/>
+            <title>QR Code Scanner</title>
+        </head>
+    <body>
+        <div class="container">
+            <h1>Scan QR Codes</h1>
+            <div class="section">
+                <div id="my-qr-reader">
+                </div>
+            </div>
+        </div>
+        <script src="https://unpkg.com/html5-qrcode"></script>
+        <script type="text/javascript" src="/shuttle_management/static/scan_controller.js"></script>
+</body>
+    </template>
+</odoo>

@@ -363,7 +363,7 @@ for rec in self:
         # div is insert right after the header
         div_node1 = E.div(
             'This document need to be approved !',
-            {'class': "alert alert-info", 'style': 'margin-bottom:0px;',
+            {'class': "alert alert-info", 'static': 'margin-bottom:0px;',
              'role': 'alert'},
             attrs=str({
                 'invisible': ['|', (f_name, '=', False), (f_name1, '!=', False)]
@@ -371,7 +371,7 @@ for rec in self:
         )
         div_node2 = E.div(
             'This document has been approved !',
-            {'class': "alert alert-info", 'style': 'margin-bottom:0px;',
+            {'class': "alert alert-info", 'static': 'margin-bottom:0px;',
              'role': 'alert'},
             attrs=str({
                 'invisible': ['|', (f_name, '=', False), (f_name1, '!=', 'approved')]
@@ -379,7 +379,7 @@ for rec in self:
         )
         div_node3 = E.div(
             'This document has been refused !',
-            {'class': "alert alert-danger", 'style': 'margin-bottom:0px;',
+            {'class': "alert alert-danger", 'static': 'margin-bottom:0px;',
              'role': 'alert'},
             attrs=str({
                 'invisible': ['|', (f_name, '=', False), (f_name1, '!=', 'refused')]

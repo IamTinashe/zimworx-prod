@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-# from odoo import http
+from odoo import http
+from odoo.http import request
 
 
-# class ShuttleManagement(http.Controller):
-#     @http.route('/shuttle_management/shuttle_management', auth='public')
-#     def index(self, **kw):
-#         return "Hello, world"
+class ShuttleManagement(http.Controller):
+    @http.route('/my_shuttle', type='http', auth='public', website=True)
+    def my_shuttle(self, **kwargs):
+        return request.render('shuttle_management.my_shuttle_template')
 
 #     @http.route('/shuttle_management/shuttle_management/objects', auth='public')
 #     def list(self, **kw):

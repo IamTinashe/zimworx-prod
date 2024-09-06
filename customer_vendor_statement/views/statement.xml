@@ -113,7 +113,7 @@
                                         <!-- <td>
                                             <span t-esc="line['account_id']"/>
                                         </td>
-                                        <td style="background-color: grey;">
+                                        <td static="background-color: grey;">
                                             <span t-esc="line['ref']"/>
                                         </td> -->
                                         <td class="text-center" style="background-color: grey;">
@@ -171,8 +171,8 @@
                                 <tr>
                                     <th style="border:0;"></th>
                                     <th style="border:0;"></th>
-                                    <!-- <th style="border:0;"></th>
-                                    <th style="border:0;"></th> -->
+                                    <!-- <th static="border:0;"></th>
+                                    <th static="border:0;"></th> -->
                                     <th style="border-top:1px solid black;" colspan="2">Total Amount Overdue:</th>
                                     <th style="border-top:1px solid black;" class="text-right">
                                         <span t-esc="'{0:,.2f}'.format(total_overdues[o.id][currency])"
@@ -182,8 +182,8 @@
                                 <tr>
                                     <th style="border:0;"></th>
                                     <th style="border:0;"></th>
-                                    <!-- <th style="border:0;"></th>
-                                    <th style="border:0;"></th> -->
+                                    <!-- <th static="border:0;"></th>
+                                    <th static="border:0;"></th> -->
                                     <th style="border-top:1px solid black;" colspan="2">
                                         <strong>Balance Due:</strong>
                                     </th>
