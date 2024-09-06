@@ -20,7 +20,7 @@
                             <a href="#learn" class="nav-link">Available Schedules</a>
                         </li>
                         <li class="nav-item">
-                            <a href="#questions" class="nav-link">Log Out</a>
+                            <a href="/my_shuttle/logout" class="nav-link">Log Out</a>
                         </li>
                     </ul>
                 </div>

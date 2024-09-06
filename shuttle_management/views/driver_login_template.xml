@@ -16,7 +16,7 @@
                    <div class="collapse navbar-collapse" id="navmenu">
                         <ul class="navbar-nav ms-auto">
                             <li class="nav-item">
-                                <a href="" class="nav-link">Sign In</a>
+                                <a href="" class="nav-link">Log In</a>
                             </li>
                         </ul>
                    </div>

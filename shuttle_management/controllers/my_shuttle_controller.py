@@ -40,12 +40,12 @@ class ShuttleManagement(http.Controller):
         else:
             # Save the driver ID in cookies
             response = request.redirect('/my_shuttle')
-            response.set_cookie('driver_id', driver_id, max_age=30)  # 30 seconds expiration
+            response.set_cookie('driver_id', driver_id, max_age=4 * 24 * 60 * 60)  # 4 days expiration
             return response
 
-
-#     @http.route('/shuttle_management/shuttle_management/objects/<model("shuttle_management.shuttle_management"):obj>', auth='public')
-#     def object(self, obj, **kw):
-#         return http.request.render('shuttle_management.object', {
-#             'object': obj
-#         })
+    @http.route('/my_shuttle/logout', type='http', auth='none', csrf=False, website=True)
+    def my_shuttle_logout(self, **kwargs):
+        """THIS LOGOUT A SHUTTLE IN THE SHUTTLE MANAGEMENT"""
+        response = request.redirect('/my_shuttle')
+        response.delete_cookie('driver_id')
+        return response
