@@ -17,6 +17,7 @@
                             <group>
                                 <field name="vehicle_registration" style="text-transform: uppercase;"  />
                                 <field name="driver_id"/>
+                                <field name="driver_login_id"/>
                                 <field name="capacity"/>
 <!--                                <field name="shuttle_route" widget="many2many_tags"/>-->
                             </group>

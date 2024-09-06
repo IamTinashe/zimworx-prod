@@ -3,12 +3,15 @@ from odoo import models, fields, api
 import base64
 import qrcode
 from io import BytesIO
+from odoo.exceptions import ValidationError
+
 
 class EmployeeInheritance(models.Model):
     """THIS INHERITS EMPLOYEE TO ADD SHUTTLE MANAGEMENT FUNCTIONS"""
     _inherit = 'hr.employee'
 
     shuttles_model=fields.Many2one('shuttles.model', string='Shuttle', tracking=True)
+    driver_login_id=fields.Char(string='Driver Login Id', tracking=True)
     shuttles_driver=fields.Many2one(related='shuttles_model.driver_id', string='Shuttle Driver')
     max_seating_capacity=fields.Integer(related='shuttles_model.capacity', store=True, string='Shuttle Max Seating Capacity')
     service_status=fields.Selection(related='shuttles_model.service_status', store=True, string='Shuttle Service Status')
@@ -26,6 +29,19 @@ class EmployeeInheritance(models.Model):
                                          ],
                                         'Onboarding Stage', required=True, default='new_employee')
 
+    @api.constrains('driver_login_id')
+    def _check_driver_login_id(self):
+        """CHECK IF DRIVER LOGIN ID IS UNIQUE"""
+        for record in self:
+            if record.driver_login_id:
+                # Search for other records with the same driver_login_id
+                existing_driver = self.search([
+                    ('driver_login_id', '=', record.driver_login_id),
+                    ('id', '!=', record.id)  # Ensure it's not the same record
+                ], limit=1)
+
+                if existing_driver:
+                    raise ValidationError('The driver login ID must be unique. This one already exists!')
 
     def action_new_employee(self):
         self.onboarding_stage = 'new_employee'

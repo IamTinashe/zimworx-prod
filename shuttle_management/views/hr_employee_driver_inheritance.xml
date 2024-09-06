@@ -54,6 +54,7 @@
                             <group>
                                 <field name="shuttles_model" attrs="{'invisible': [('department_id','!=',18)]}"  options="{'no_edit': True, 'no_create': True }"/>
                                 <field name="shuttle_route" widget="many2many_tags"  attrs="{'invisible': [('department_id','!=',18)]}"  options="{'no_edit': True, 'no_create': True}"/>
+                                <field name="driver_login_id"/>
                                 <field name="mobile_phone" widget="phone"/>
                                 <field name="work_phone" widget="phone"/>
                                 <field name="work_email" widget="email"/>
