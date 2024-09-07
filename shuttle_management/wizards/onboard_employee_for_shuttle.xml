@@ -30,7 +30,7 @@
                                          <field name="original_id" invisible="1" />
                                          <field name="shuttle_schedule"   attrs="{'invisible': [('new_schedule','=',True)]}" domain="[('shuttle_id','=', shuttle_id),('is_fully_booked','=','not_fully_booked')]"  />
                                          <field name="new_schedule"/>
-                                         <field name="shuttle_route" widget="many2many_tags" attrs="{'invisible': [('new_schedule','=',False)],'required': [('new_schedule','=',False)]}" />
+                                         <field name="shuttle_route" widget="many2many_tags" attrs="{'invisible': [('new_schedule','=',False)],'required': [('new_schedule','=',True)]}" />
                                          <field name="departure_time" widget="float_time"/>
                                     </tree>
                                 </field>

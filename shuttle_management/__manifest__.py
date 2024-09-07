@@ -27,6 +27,8 @@
         'views/my_shuttle_template_controller.xml',
         'views/qr_code_scan.xml',
         'views/driver_login_template.xml',
+        'views/onboard_my_shuttle_template.xml',
+        'views/onboard_scan_qr_code.xml',
         # 'views/default_views.xml',
         # 'report/default_report.xml',
     ],

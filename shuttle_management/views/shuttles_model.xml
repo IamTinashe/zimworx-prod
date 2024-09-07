@@ -35,6 +35,7 @@
                                     <tree editable="top">
                                         <field name="weekday_id" widget="many2many_tags" options="{'color_field': 'color'}"/>
                                          <field name="departure_time" widget="float_time"/>
+<!--                                         <field name="display_departure_time" column_invisible="True"/>-->
                                          <field name="shuttle_route" widget="many2many_tags"/>
                                          <field name="booked_seating_capacity"/>
                                         <field name="is_fully_booked"  decoration-danger="is_fully_booked == 'fully_booked'"  decoration-success="is_fully_booked == 'not_fully_booked'"/>

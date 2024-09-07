@@ -1,4 +1,5 @@
 from odoo import fields, models, api
+from datetime import datetime
 
 
 class ShuttleSchedules(models.Model):
@@ -9,6 +10,8 @@ class ShuttleSchedules(models.Model):
     shuttle_id = fields.Many2one('shuttles.model', string='Shuttle', required=True)
     # route_name = fields.Char(string='Route Name', required=True)
     departure_time = fields.Float(string='Departure Time 24hr', required=True)
+    confirmed_date = fields.Date(string='Driver Confirmed Date', required=True)
+    display_departure_time = fields.Char(string='Departure Time 24hr',  required=True)
     booked_seating_capacity = fields.Integer(string='Booked Seating Capacity')
     max_seating_capacity = fields.Integer(string='Max Seating Capacity')
     is_fully_booked = fields.Selection([
@@ -27,3 +30,13 @@ class ShuttleSchedules(models.Model):
             name = f"{weekdays} - {record.departure_time}"
             result.append((record.id, name))
         return result
+
+    @api.onchange('departure_time')
+    def onchange_departure_time(self):
+        for rec in self:
+            hours = int(rec.departure_time)
+            minutes = round((rec.departure_time - hours) * 60)
+            print(minutes)
+            time_str = f"{hours:02}:{minutes:02}"
+            rec.display_departure_time = datetime.strptime(time_str, '%H:%M').strftime('%H:%M')
+
