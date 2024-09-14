@@ -83,7 +83,7 @@
                                             <td name="departure_time"><span t-field="schedule.display_departure_time" /></td>
                                             <td name="shuttle_route"><span t-field="schedule.shuttle_route" /></td>
                                             <td name="booked_seating_capacity"><span t-field="schedule.booked_seating_capacity" /></td>
-                                            <td><a type="button"  t-attf-href="/my_shuttle/onboard/#{schedule.id}" class="btn btn-sm btn-warning">Onboard</a></td>
+                                            <td><a type="button"  t-attf-href="/my_shuttle/onboard/td/#{schedule.id}" class="btn btn-sm btn-warning">Onboard</a></td>
                                             <td t-if="schedule.is_fully_booked=='fully_booked'" name="is_fully_booked">
                                                 <span class="badge text-wrap bg-success text-uppercase">Fully Booked</span>
                                             </td>
@@ -118,7 +118,7 @@
                                             <td name="departure_time"><span t-field="yesterday_unconfirmed_schedule.display_departure_time" /></td>
                                             <td name="shuttle_route"><span t-field="yesterday_unconfirmed_schedule.shuttle_route" /></td>
                                             <td name="booked_seating_capacity"><span t-field="yesterday_unconfirmed_schedule.booked_seating_capacity" /></td>
-                                            <td><button type="button"  t-attf-href="/my_shuttle/onboard/#{schedule.id}" class="btn btn-sm btn-warning">Onboard</button></td>
+                                            <td><a type="button"  t-attf-href="/my_shuttle/onboard/yt/#{schedule.id}" class="btn btn-sm btn-warning">Onboard</a></td>
                                             <td t-if="yesterday_unconfirmed_schedule.is_fully_booked=='fully_booked'" name="is_fully_booked">
                                                 <span class="badge bg-success text-uppercase">Fully Booked</span>
                                             </td>

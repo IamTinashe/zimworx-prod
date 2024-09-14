@@ -11,3 +11,4 @@ from . import employee_schedules_model
 from . import route_start_location_model
 from . import route_end_location_model
 from . import drivers_schedule_model
+from . import shuttle_onboard_history

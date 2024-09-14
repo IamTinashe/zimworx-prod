@@ -16,7 +16,7 @@ class OnboardEmployeeForShuttle(models.TransientModel):
     route_not_found = fields.Boolean(default=False)
     schedule_found = fields.Boolean(default=False)
     shuttle_schedule_ids=fields.One2many('onboard_shuttle_schedule.wizard', 'shuttle_id', string='shuttle_schedule Shuttle')
-    shuttle_id = fields.Many2one('shuttles.model', string='Possible Shuttle', required=True)
+    shuttle_id = fields.Many2one('shuttles.model', string='Possible Shuttle')
     employee_schedules_ids = fields.One2many('employee_schedules.wizard', 'onboard_employee_for_shuttle_id', string='Employee Schdule', required=True)
 
     @api.model

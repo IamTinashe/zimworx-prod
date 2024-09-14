@@ -20,7 +20,7 @@
                     <header>
                         <button name="create_qr_code_for_employee" string="Generate QRCode" type="object" />
 <!--                        <button name="action_new_employee" type="object" string="New Employee"  attrs="{'invisible': [('onboarding_stage', '!=', 'new_employee')]}" class="oe_highlight"/>-->
-                        <button name="%(onboard_employee_for_shuttle_wizard_act_window)d" type="action" string="Allocated Schedule"  attrs="{'invisible': [('onboarding_stage', '!=', 'new_employee')]}" class="oe_highlight"/>
+                        <button name="%(onboard_employee_for_shuttle_wizard_act_window)d" type="action" string="Allocated Schedule"  class="oe_highlight"/>
                         <button name="%(action_shuttle_email_wizard)d" type="action" string="Request QR Code Collection" attrs="{'invisible': [('onboarding_stage', '!=', 'allocated_schedule')]}" class="oe_highlight"/>
                         <button name="action_qr_code_collected" type="object" string="QR Code Collected" attrs="{'invisible': [('onboarding_stage', '!=', 'qr_code_printed')]}" class="oe_highlight"/>
                         <button name="action_done" type="object" string="Done"  attrs="{'invisible': [('onboarding_stage', '!=', 'qr_code_collected')]}" class="oe_highlight"/>
@@ -73,6 +73,7 @@
                                 </div>
                                 <field name="mobile_phone" widget="phone"/>
                                 <field name="work_phone" widget="phone"/>
+                                <field name="old_qr_code"/>
 
                             </group>
                             <group>
@@ -96,6 +97,15 @@
                                          <field name="shuttle_id" />
                                          <field name="shuttle_schedule"  domain="[('shuttle_id','=', shuttle_id),('is_fully_booked','=','not_fully_booked')]"  />
                                          <field name="departure_time" widget="float_time"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page name="Shuttle Onboard History">
+                                <field name="shuttle_onboard_history_ids"  >
+                                    <tree editable="top" >
+                                         <field name="onboard_date" />
+                                         <field name="shuttle_id" readonly="1"/>
+                                         <field name="onboard_date"/>
                                     </tree>
                                 </field>
                             </page>
@@ -207,11 +217,35 @@
         </record>
 
 
-        <record id="inherit_open_view_employee_list_my" model="ir.actions.act_window">
-            <field name="name">Employees</field>
+        <record id="inherit_open_view_new_employee_list_my" model="ir.actions.act_window">
+            <field name="name">New Employees</field>
             <field name="res_model">hr.employee</field>
             <field name="view_mode">kanban,tree,form,activity</field>
-            <field name="domain">[]</field>
+            <field name="domain">[('onboarding_stage','!=','done')]</field>
+            <field name="context">{'chat_icon': True}</field>
+            <field name="view_id" eval="False"/>
+             <field name="view_ids" eval="[(5, 0, 0),
+                    (0, 0, {'view_mode': 'tree', 'view_id': ref('hr.view_employee_tree')}),
+                    (0, 0, {'view_mode': 'kanban', 'view_id': ref('hr.hr_kanban_view_employees')}),
+                    (0, 0, {'view_mode': 'form', 'view_id': ref('inherit_employess_view_employee_form')})]"/>
+            <field name="search_view_id" ref="hr.view_employee_filter"/>
+            <field name="help" type="html">
+             <p class="o_view_nocontent_smiling_face">
+               Add a new employee
+             </p><p>
+               With just a quick glance on the Odoo employee screen, you
+               can easily find all the information you need for each person;
+               contact data, job position, availability, etc.
+             </p>
+            </field>
+        </record>
+
+
+        <record id="inherit_open_view_onboarded_employee_list_my" model="ir.actions.act_window">
+            <field name="name">Onboarded Employees</field>
+            <field name="res_model">hr.employee</field>
+            <field name="view_mode">kanban,tree,form,activity</field>
+            <field name="domain">[('onboarding_stage','=','done')]</field>
             <field name="context">{'chat_icon': True}</field>
             <field name="view_id" eval="False"/>
              <field name="view_ids" eval="[(5, 0, 0),
@@ -233,8 +267,21 @@
         <menuitem name="Employees"
                   id="shuttle_employees_root_menu"
                   parent="shuttle_management_root_menu"
-                  action="inherit_open_view_employee_list_my"
                   sequence="1"
+                />
+
+        <menuitem name="New Employees"
+                  id="shuttle_new_employees_root_menu"
+                  parent="shuttle_employees_root_menu"
+                  action="inherit_open_view_new_employee_list_my"
+                  sequence="1"
+                />
+
+        <menuitem name="Onboarded Employees"
+                  id="shuttle_onboarded_employees_root_menu"
+                  parent="shuttle_employees_root_menu"
+                  action="inherit_open_view_onboarded_employee_list_my"
+                  sequence="2"
                 />
 
     </data>

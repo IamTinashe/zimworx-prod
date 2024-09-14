@@ -17,10 +17,12 @@ class EmployeeInheritance(models.Model):
     service_status=fields.Selection(related='shuttles_model.service_status', store=True, string='Shuttle Service Status')
     shuttle_route=fields.Many2many(related='shuttles_model.shuttle_route', string='Shuttle Route')
     employee_schedules_ids=fields.One2many('employee_schedules.model', 'employee_id', string='Driver Schedules')
+    shuttle_onboard_history_ids=fields.One2many('shuttle_onboard_history.model', 'employee_id', string='Shuttle Onboard History')
     qr_code_image = fields.Binary(string="QR Code")
     street = fields.Char(related='address_home_id.street',string="Street")
     street2 = fields.Char(related='address_home_id.street2',string="Street2")
     city = fields.Char(related='address_home_id.city',string="City")
+    old_qr_code = fields.Char(string="Old QR Code")
     onboarding_stage = fields.Selection([('new_employee', 'New Employee'),
                                          ('allocated_schedule', 'Allocated Schedule'),
                                          ('qr_code_printed', 'Qr Code Printed'),
@@ -58,10 +60,11 @@ class EmployeeInheritance(models.Model):
 
     def action_done(self):
         self.onboarding_stage = 'done'
+
     def create_qr_code_for_employee(self):
         """Generates and saves a QR code for each employee."""
         for employee in self:
-            data = f"Name: {employee.name}, ID: {employee.id}"
+            data = f"Name: {employee.name}, ID: {employee.id}, Code: {employee.x_studio_employee_code}"
             qr_code = self.generate_qr_code(data)
             employee.qr_code_image = qr_code
 

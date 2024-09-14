@@ -27,14 +27,14 @@ class ShuttleManagement(http.Controller):
             next_3_days = [date.strftime('%A').lower() for date in date_list]
             print(next_3_days)
 
-            next_3_days_shuttle_schedule = request.env['shuttle_schedule.model'].search(
-                [('shuttle_id', '=', shuttle_id.id), ('weekday_id.name','in', next_3_days), ('confirmed_date','!=',today.strftime('%m/%d/%Y'))])
+            # next_3_days_shuttle_schedule = request.env['shuttle_schedule.model'].search(
+            #     [('shuttle_id', '=', shuttle_id.id), ('weekday_id.name','in', next_3_days), ('confirmed_date','!=',today.strftime('%m/%d/%Y'))])
 
             #get yesterday unconfirmed date
             yesterday = today - timedelta(days=1)
 
             yesterday_unconfirmed_shuttle_schedule = request.env['shuttle_schedule.model'].search(
-                [('shuttle_id', '=', shuttle_id.id), ('weekday_id.name', '=', yesterday.strftime('%A').lower()), ('confirmed_date','!=',yesterday.strftime('%m/%d/%Y'))])
+                [('shuttle_id', '=', shuttle_id.id), ('weekday_id.name', '=', yesterday.strftime('%A').lower())])
 
         return request.render('shuttle_management.my_shuttle_template',{
             'shuttle_id':shuttle_id,
@@ -72,7 +72,7 @@ class ShuttleManagement(http.Controller):
             response.set_cookie('driver_id', driver_id, max_age=4 * 24 * 60 * 60)  # 4 days expiration
             return response
 
-    @http.route('/my_shuttle/logout', type='http', auth='none', csrf=False, website=True, methods=['POST'])
+    @http.route('/my_shuttle/logout', type='http', auth='none', csrf=False, website=True)
     def my_shuttle_logout(self, **kwargs):
         """THIS LOGOUT A SHUTTLE IN THE SHUTTLE MANAGEMENT"""
         response = request.redirect('/my_shuttle')

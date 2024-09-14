@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <menuitem name="Shuttle Management"  id="shuttle_management_root_menu"/>
+        <menuitem name="Shuttle Management"  id="shuttle_management_root_menu" action="inherit_open_view_new_employee_list_my"/>
         <menuitem name="Settings"  id="shuttle_settings_menu" parent="shuttle_management_root_menu" sequence="5" />
     </data>
 </odoo>
