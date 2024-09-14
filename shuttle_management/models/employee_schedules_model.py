@@ -1,5 +1,7 @@
 from odoo import fields, models, api
 from datetime import datetime
+from odoo import _, api, fields, models
+from odoo.exceptions import ValidationError
 
 
 
@@ -17,10 +19,13 @@ class EmployeeSchedules(models.Model):
 
     @api.onchange('departure_time')
     def onchange_departure_time(self):
+        """CONVETES DEPARTURE TIME TO A DISPLAYABLE TIME IN DISPLAY DEPARTURE TIME"""
         for rec in self:
             hours = int(rec.departure_time)
             minutes = round((rec.departure_time - hours) * 60)
-            print(minutes)
             time_str = f"{hours:02}:{minutes:02}"
-            rec.display_departure_time = datetime.strptime(time_str, '%H:%M').strftime('%H:%M')
+            try:
+                rec.display_departure_time = datetime.strptime(time_str, '%H:%M').strftime('%H:%M')
+            except ValueError:
+                raise ValidationError(_('Please renter your time in format of H:M eg 13:00'))
 

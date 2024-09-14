@@ -146,7 +146,7 @@ class OnboardEmployeeForShuttle(models.TransientModel):
     def onchange_shuttle_id(self):
         """MONITOR THE CHANGE OF A SHUTTLE AND FEED THE SHUTTLE SCHEDULE FOR A QUICK VIEW"""
         for rec in self:
-            # delete current rem,jmcord in shuttle_schedule_ids
+            # delete current remcord in shuttle_schedule_ids
             self.shuttle_schedule_ids = [(5, 0, 0)]
             shuttle_schedule_ids = []
             # append new into the selected shuttle_schedule_ids
@@ -175,6 +175,11 @@ class OnboardEmployeeForShuttle(models.TransientModel):
                     'shuttle_id': rec.shuttle_id.id,
                     'shuttle_schedule': rec.shuttle_schedule.id,
                 })
+                #update the booking seating capacity by adding 1
+                rec.shuttle_schedule.write({
+                    'booked_seating_capacity':rec.shuttle_schedule.booked_seating_capacity + 1
+                })
+
             else:
                 #create a new schedule and attaché the created schedule to that employee
                 shuttle_schedule_id=self.env['shuttle_schedule.model'].create({
@@ -182,6 +187,7 @@ class OnboardEmployeeForShuttle(models.TransientModel):
                     'departure_time':rec.departure_time,
                     'weekday_id':rec.weekday_id,
                     'shuttle_route':rec.shuttle_route,
+                    'booked_seating_capacity':1,
                 })
                 #now update the employee schdule with the allocated schdule
                 original_employee_schedules_id.write({

@@ -10,8 +10,8 @@ class ShuttleSchedules(models.Model):
     shuttle_id = fields.Many2one('shuttles.model', string='Shuttle', required=True)
     # route_name = fields.Char(string='Route Name', required=True)
     departure_time = fields.Float(string='Departure Time 24hr', required=True)
-    confirmed_date = fields.Date(string='Driver Confirmed Date', required=True)
-    display_departure_time = fields.Char(string='Departure Time 24hr',  required=True)
+    confirmed_date = fields.Date(string='Driver Confirmed Date',)
+    display_departure_time = fields.Char(string='Departure Time 24hr')
     booked_seating_capacity = fields.Integer(string='Booked Seating Capacity')
     max_seating_capacity = fields.Integer(string='Max Seating Capacity')
     is_fully_booked = fields.Selection([
