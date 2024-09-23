@@ -2,7 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 {
     'name': 'Shuttle Management',
-    'version': '24.0.1',
+    'version': '16.24.0.1',
     'author': 'Estain Makaudze',
     'summary': 'Invoices & Payments',
     'sequence': -100,

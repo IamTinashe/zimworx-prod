@@ -31,8 +31,8 @@
 
 <!--     Avaliable Schedules-->
         <section class="text-light p-5 pt-4">
-    <div class="container">
-        <div class="row">
+            <div class="container">
+            <div class="row">
             <div class="col-12 col-md-4 mb-4">
                 <!-- DRIVER DETAILS SECTION -->
                 <div class="card bg-secondary text-light">
@@ -134,8 +134,8 @@
                 </div>
             </div>
         </div>
-    </div>
-</section>
+            </div>
+        </section>
 
 
 

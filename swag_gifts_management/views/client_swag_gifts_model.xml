@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="client_swag_gifts_model_form_view" model="ir.ui.view">
+            <field name="name">client_swag_gifts.model.form</field>
+            <field name="model">client_swag_gifts.model</field>
+            <field name="arch" type="xml">
+                <form string="Client Swag Gifts">
+                    <header>
+                         <field name="status" widget="statusbar" statusbar_visible="pending,shipped,delivered" />
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="box_number" placeholder="Box Number"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="company"/>
+                                <field name="name"/>
+                                 <span class="o_form_label o_td_label" name="address_name">
+                                <b>Address</b>
+                                </span>
+                                <div class="o_address_format">
+                                    <field name="street" readonly="0" force_save="1" placeholder="Street..." class="o_address_street"/>
+                                    <field name="street2" readonly="0" force_save="1" placeholder="Street 2..." class="o_address_street"/>
+                                    <field name="city" readonly="0" force_save="1" placeholder="City" class="o_address_city"/>
+                                    <field name="state_id" readonly="0"  class="o_address_state" placeholder="State" options="{'no_open': True, 'no_quick_create': True}" />
+                                    <field name="zip" readonly="0"  placeholder="ZIP" class="o_address_zip"/>
+
+                                </div>
+                                <field name="phone"/>
+                                <field name="email"/>
+                            </group>
+                            <group>
+                                <field name="tracking_number"/>
+                                <field name="ship_date"/>
+                                <field name="delivery_date"/>
+                                <field name="salesperson"/>
+                                <field name="follow_up_done"/>
+                            </group>
+                        </group>
+                    </sheet>
+                     <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="client_swag_gifts_model_tree_view" model="ir.ui.view">
+            <field name="name">client_swag_gifts.model.tree</field>
+            <field name="model">client_swag_gifts.model</field>
+            <field name="arch" type="xml">
+                <tree string="Client Swag Gifts">
+                    <field name="company"/>
+                    <field name="name"/>
+                     <field name="tracking_number"/>
+                    <field name="ship_date"/>
+                    <field name="delivery_date"/>
+                    <field name="salesperson"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="client_swag_gifts_model_search_view" model="ir.ui.view">
+            <field name="name">client_swag_gifts.model.search</field>
+            <field name="model">client_swag_gifts.model</field>
+            <field name="arch" type="xml">
+                <search string="Client Swag Gifts">
+                    <field name="company"/>
+                    <field name="name"/>
+                    <field name="delivery_date"/>
+                    <group expand="1" string="Group By">
+                        <filter string="company" name="Company"
+                                context="{'group_by':'company'}"/>
+                        <filter string="salesperson" name="Salesperson"
+                                context="{'group_by':'salesperson'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="client_swag_gifts_model_act_window" model="ir.actions.act_window">
+            <field name="name">Client Swag Gifts</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">client_swag_gifts.model</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    There is no gifts click new to add new Client Swag Gifts.
+                </p>
+            </field>
+        </record>
+
+        <menuitem name="Client Swag Gifts" id="client_swag_gifts_model_menu" parent="crm.crm_menu_root" action="client_swag_gifts_model_act_window"/>
+    </data>
+</odoo>
