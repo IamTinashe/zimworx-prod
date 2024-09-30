@@ -9,6 +9,10 @@
                 <form string="Client Swag Gifts">
                     <header>
                          <field name="status" widget="statusbar" statusbar_visible="pending,shipped,delivered" />
+                        <button name="set_to_shipped" string="Mark as Shipped" type="object" class="btn-primary" attrs="{'invisible': [('status', '!=', 'pending')]}"/>
+                        <button name="set_to_delivered" string="Mark as Delivered" type="object" class="btn-primary" attrs="{'invisible': [('status', '!=', 'shipped')]}"/>
+                        <button name="reset_to_pending" string="Reset to Pending" type="object" class="btn-primary" attrs="{'invisible': [('status', '!=', 'delivered')]}"/>
+
                     </header>
                     <sheet>
                         <div class="oe_title">
@@ -38,7 +42,7 @@
                                 <field name="tracking_number"/>
                                 <field name="ship_date"/>
                                 <field name="delivery_date"/>
-                                <field name="salesperson"/>
+                                <field name="salesperson" widget="many2one_avatar_user" />
                                 <field name="follow_up_done"/>
                             </group>
                         </group>

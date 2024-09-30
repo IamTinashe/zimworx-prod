@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from datetime import date
 
 class ClientSwagGiftsManagement(models.Model):
     _name = 'client_swag_gifts.model'
@@ -23,5 +24,16 @@ class ClientSwagGiftsManagement(models.Model):
     tracking_number = fields.Char(string='Tracking No.')
     ship_date = fields.Date(string='Ship Date')
     delivery_date = fields.Date(string='Delivery Date')
-    salesperson = fields.Many2one(related='company.user_id', string='Salesperson')
+    date_delivered = fields.Date(string='Date Delivered')
+    salesperson = fields.Many2one('res.users', string='Salesperson')
     follow_up_done = fields.Boolean(string='Follow Up Done', default=False)
+
+    def set_to_shipped(self):
+        self.status = 'shipped'
+
+    def set_to_delivered(self):
+        self.status = 'delivered'
+        self.date_delivered = date.today()
+
+    def reset_to_pending(self):
+        self.status = 'pending'
