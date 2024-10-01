@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+         <record id="employee_qr_code_report_option" model="ir.actions.report">
+            <field name="name">Qr Code Report</field>
+            <field name="model">hr.employee</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_file">shuttle_management.employee_qr_code_report_template</field>
+            <field name="report_name">shuttle_management.employee_qr_code_report_template</field>
+            <field name="binding_model_id" ref="model_hr_employee"/>
+            <field name="binding_type">report</field>
+             <field name="paperformat_id" ref="paperformat_qr_code_report"/>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,25 @@
+<odoo>
+    <template id="employee_qr_code_report_template">
+        <t t-call="web.html_container">
+                <div class="page">
+                    <table style="width: 100%; border-collapse8: separate; border-spacing: 10px;">
+                        <t t-set="column_count" t-value="4"/>
+                        <t t-set="total_employees" t-value="len(docs)"/>
+                        <t t-foreach="range(0, total_employees, column_count)" t-as="start_index">
+                            <tr>
+                                <t t-foreach="range(start_index, min(start_index + column_count, total_employees))" t-as="index">
+                                    <td style="width: 25%; text-align: center; vertical-align: top;">
+                                        <t t-set="employee" t-value="docs[index]"/>
+                                        <t t-if="employee.qr_code_image">
+                                            <img t-att-src="image_data_uri(employee.qr_code_image)" style="width: 200px; height: 200px;" alt="QR Code"/>
+                                            <div><strong><span t-field="employee.name"/></strong></div>
+                                        </t>
+                                    </td>
+                                </t>
+                            </tr>
+                        </t>
+                    </table>
+                </div>
+            </t>
+    </template>
+</odoo>

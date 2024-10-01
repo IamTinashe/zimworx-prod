@@ -40,8 +40,8 @@ class ShuttlesModel(models.Model):
         for record in self:
             if record.driver_id:
                 # Search for other records with the same driver_login_id
-                existing_driver = self.search([
-                    ('driver_id', '=', record.driver_id),
+                existing_driver = self.env[('shuttles.model')].search([
+                    ('driver_id', '=', record.driver_id.id),
                     ('id', '!=', record.id)  # Ensure it's not the same record
                 ], limit=1)
                 if existing_driver:
