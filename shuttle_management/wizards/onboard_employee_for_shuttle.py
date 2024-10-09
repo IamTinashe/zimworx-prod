@@ -189,11 +189,13 @@ class OnboardEmployeeForShuttle(models.TransientModel):
                     'shuttle_route':rec.shuttle_route,
                     'booked_seating_capacity':1,
                 })
+                shuttle_schedule_id.onchange_departure_time()
                 #now update the employee schdule with the allocated schdule
                 original_employee_schedules_id.write({
                     'shuttle_id': rec.shuttle_id.id,
                     'shuttle_schedule': shuttle_schedule_id.id,
                 })
+
         #update status to allocated schdule
         hr_employee_id = self.env['hr.employee'].search([('id', '=', self._context.get('active_id'))])
         hr_employee_id.onboarding_stage='allocated_schedule'

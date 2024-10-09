@@ -40,3 +40,8 @@ class ShuttleSchedules(models.Model):
             time_str = f"{hours:02}:{minutes:02}"
             rec.display_departure_time = datetime.strptime(time_str, '%H:%M').strftime('%H:%M')
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        res = super(ShuttleSchedules, self).create(vals_list)
+        self.onchange_departure_time()
+        return res

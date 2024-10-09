@@ -9,7 +9,7 @@
                 <form string="Client Swag Gifts">
                     <header>
                          <field name="status" widget="statusbar" statusbar_visible="pending,shipped,delivered" />
-                        <button name="set_to_shipped" string="Mark as Shipped" type="object" class="btn-primary" attrs="{'invisible': [('status', '!=', 'pending')]}"/>
+                        <button name="authenticate_fedex_api" string="Mark as Shipped" type="object" class="btn-primary" attrs="{'invisible': [('status', '!=', 'pending')]}"/>
                         <button name="set_to_delivered" string="Mark as Delivered" type="object" class="btn-primary" attrs="{'invisible': [('status', '!=', 'shipped')]}"/>
                         <button name="reset_to_pending" string="Reset to Pending" type="object" class="btn-primary" attrs="{'invisible': [('status', '!=', 'delivered')]}"/>
 

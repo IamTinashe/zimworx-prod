@@ -54,7 +54,7 @@
                                     <a type="button"  t-attf-href="/my_shuttle" class="btn btn btn-light">My Portal</a>
                                     <a type="button"  t-attf-href="/my_shuttle/scan_qr/#{date}/#{schedule_id}" class="mx-1 btn btn btn-success">Scan QR Codes</a>
                                     <h3 class="card-title mt-3 fw-light fst-italic">Scheduled Employees</h3>
-                                    <span class="fst-italic">Route: <t t-esc="shuttle_schedule.shuttle_route" /></span>
+                                    <span class="fst-italic">Route: <t t-esc="shuttle_schedule.shuttle_route.name" /></span>
                                     <div class="table-responsive mt-4">
                                         <table class="table table-sm">
                                             <thead>

@@ -1,5 +1,7 @@
 from odoo import models, fields, api
 from datetime import date
+import requests
+
 
 class ClientSwagGiftsManagement(models.Model):
     _name = 'client_swag_gifts.model'
@@ -37,3 +39,20 @@ class ClientSwagGiftsManagement(models.Model):
 
     def reset_to_pending(self):
         self.status = 'pending'
+
+
+    def authenticate_fedex_api(self):
+        """THIS GENERATES A TOCKEN WHICH IS USED FOR FEDEX API """
+        url = "https://apis-sandbox.fedex.com/oauth/token"
+        payload = {
+            'grant_type': 'client_credentials',
+            'client_id': 'l797489fb42f0249bd9bf47e78d755d367',
+            'client_secret': '4d416060714d4f258da47ce240db6ff1',
+        }
+        headers = {
+            'Content-Type': "application/x-www-form-urlencoded"
+        }
+        response = requests.post(url, data=payload, headers=headers)
+        response_date=response.text['access_token']
+        print(response_date.get("access_token"))
+        return response

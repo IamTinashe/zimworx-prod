@@ -90,13 +90,14 @@
                             </group>
                         </group>
                         <notebook>
-                            <page name="Employee Schedule">
+                            <page name="Employee Shuttle Schedule">
                                 <field name="employee_schedules_ids" >
                                     <tree editable="top">
                                          <field name="weekday_id" widget="many2many_tags" options="{'color_field': 'color'}"/>
                                          <field name="shuttle_id" />
                                          <field name="shuttle_schedule"  domain="[('shuttle_id','=', shuttle_id),('is_fully_booked','=','not_fully_booked')]"  />
                                          <field name="departure_time" widget="float_time"/>
+                                         <field name="display_departure_time" invisible="1"/>
                                     </tree>
                                 </field>
                             </page>
@@ -216,7 +217,6 @@
             </field>
         </record>
 
-
         <record id="inherit_open_view_new_employee_list_my" model="ir.actions.act_window">
             <field name="name">New Employees</field>
             <field name="res_model">hr.employee</field>
@@ -240,7 +240,6 @@
             </field>
         </record>
 
-
         <record id="inherit_open_view_onboarded_employee_list_my" model="ir.actions.act_window">
             <field name="name">Onboarded Employees</field>
             <field name="res_model">hr.employee</field>
@@ -261,6 +260,27 @@
                can easily find all the information you need for each person;
                contact data, job position, availability, etc.
              </p>
+            </field>
+        </record>
+
+        <record id="view_employee_form_inheritance" model="ir.ui.view">
+            <field name="name">hr.employee.form.inherit</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.view_employee_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/notebook/page[@name='hr_settings']" position="after">
+                    <page name="Employee Shuttle Schedule">
+                        <field name="employee_schedules_ids" >
+                            <tree editable="top">
+                                 <field name="weekday_id" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                                 <field name="shuttle_id" />
+                                 <field name="shuttle_schedule"  domain="[('shuttle_id','=', shuttle_id),('is_fully_booked','=','not_fully_booked')]"  />
+                                 <field name="departure_time" widget="float_time"/>
+                                 <field name="display_departure_time" invisible="1"/>
+                            </tree>
+                        </field>
+                    </page>
+                </xpath>
             </field>
         </record>
 

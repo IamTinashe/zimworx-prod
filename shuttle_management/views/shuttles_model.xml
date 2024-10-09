@@ -40,6 +40,8 @@
                                          <field name="booked_seating_capacity"/>
                                         <field name="is_fully_booked"  decoration-danger="is_fully_booked == 'fully_booked'"  decoration-success="is_fully_booked == 'not_fully_booked'"/>
                                          <field name="max_seating_capacity"/>
+                                         <field name="display_departure_time"/>
+                                         <field name="confirmed_date"/>
                                     </tree>
                                 </field>
                             </page>
