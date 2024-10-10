@@ -85,9 +85,7 @@
                                             <td name="shuttle_route"><span t-field="schedule.shuttle_route" /></td>
                                             <td name="booked_seating_capacity"><span t-field="schedule.booked_seating_capacity" /></td>
                                             <td><a type="button"  t-attf-href="/my_shuttle/onboard/td/#{schedule.id}" class="btn btn-sm btn-warning">Onboard</a></td>
-                                            <td t-if="schedule.confirmed_date != today_date">
-                                                <a type="button" t-attf-href="/confirm_schedule/#{schedule.id}/td" class="btn btn-sm btn-success">Confirm</a>
-                                            </td>
+                                            <td><a type="button" t-attf-href="/confirm_schedule/#{schedule.id}/td" class="btn btn-sm btn-success">Confirm</a></td>
                                             <td t-if="schedule.is_fully_booked=='fully_booked'" name="is_fully_booked">
                                                 <span class="badge text-wrap bg-success text-uppercase">Fully Booked</span>
                                             </td>
