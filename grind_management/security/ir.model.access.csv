@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_grind_inventory_model,access_grind_inventory_model,model_grind_inventory_model,base.group_user,1,1,1,1
+access_grind_menu_model,access_grind_menu_model,model_grind_menu_model,base.group_user,1,1,1,1
+access_grind_menu_ingredient_model,access_grind_menu_ingredient_model,model_grind_menu_ingredient_model,base.group_user,1,1,1,1

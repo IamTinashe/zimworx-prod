@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="grind_inventory_form_view" model="ir.ui.view">
+            <field name="name">grind_inventory.model.form</field>
+            <field name="model">grind_inventory.model</field>
+            <field name="arch" type="xml">
+                <form string="Grind Inventory">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" placeholder="Item Name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="item_code"/>
+                                <field name="supplier_id"/>
+                                <field name="inventory_type"/>
+                                <field name="cost_price"/>
+                                <field name="sale_price"/>
+                                <field name="currency_id" invisible="1"/>
+                                <field name="quantity_available"/>
+<!--                                <field name="uom_id"/>-->
+                            </group>
+                            <group>
+                                <field name="reorder_level"/>
+                                <field name="reorder_quantity"/>
+<!--                                <field name="category_id"/>-->
+                                <field name="date_added"/>
+                                <field name="active"/>
+                                <field name="description"/>
+                            </group>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="grind_inventory_tree_view" model="ir.ui.view">
+            <field name="name">grind_inventory.model.tree</field>
+            <field name="model">grind_inventory.model</field>
+            <field name="arch" type="xml">
+                <tree string="Grind Inventory" sample="1">
+                    <field name="item_code"/>
+                    <field name="name"/>
+                    <field name="supplier_id"/>
+                    <field name="cost_price"/>
+                    <field name="sale_price"/>
+                    <field name="quantity_available"/>
+<!--                    <field name="uom_id"/>-->
+                    <field name="currency_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="grind_inventory_search_view" model="ir.ui.view">
+            <field name="name">grind_inventory.model.search</field>
+            <field name="model">grind_inventory.model</field>
+            <field name="arch" type="xml">
+                <search string="Grind Inventory">
+                    <field name="name"/>
+                    <field name="item_code"/>
+                    <group expand="1" string="Group By">
+<!--                        <filter string="Category" name="category_id" context="{'group_by':'category_id'}"/>-->
+                        <filter string="Supplier" name="supplier_id" context="{'group_by':'supplier_id'}"/>
+                        <filter string="Inventory Type" name="inventory_type" context="{'group_by':'inventory_type'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="grind_inventory_act_window" model="ir.actions.act_window">
+            <field name="name">Grind Inventory</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">grind_inventory.model</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Enjoy easy management of grind inventory
+                </p>
+                <p> Click new to add an inventory</p>
+            </field>
+        </record>
+
+        <menuitem name="Grind Inventory" id="grind_inventory_menu" parent="grind_management_root_menu" action="grind_inventory_act_window"/>
+
+    </data>
+</odoo>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="grind_menu_model_form_view" model="ir.ui.view">
+            <field name="name">grind_menu.model.form</field>
+            <field name="model">grind_menu.model</field>
+            <field name="arch" type="xml">
+                <form string="Grind Menu">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" placeholder="Menu Name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="menu_code"/>
+                                <field name="sale_price"/>
+                                <field name="cost_price"/>
+                                <field name="currency_id"/>
+                            </group>
+                            <group>
+                                <field name="description"/>
+                                <field name="active"/>
+                                <field name="date_added"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page name="ingredients" string="Ingredients">
+                                <field name="ingredients_ids">
+                                    <tree editable="bottom">
+                                        <field name="grind_inventory"/>
+                                        <field name="quantity"/>
+                                        <field name="cost_price"/>
+                                        <field name="currency_id"/>
+                                    </tree>
+                                </field>
+                            </page>
+                    </notebook>
+                    </sheet>
+
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="grind_menu_model_tree_view" model="ir.ui.view">
+            <field name="name">grind_menu.model.tree</field>
+            <field name="model">grind_menu.model</field>
+            <field name="arch" type="xml">
+                <tree string="Grind Menu" sample="1">
+                    <field name="menu_code"/>
+                    <field name="name"/>
+                    <field name="sale_price"/>
+                    <field name="cost_price"/>
+                    <field name="currency_id"/>
+                    <field name="active"/>
+                    <field name="date_added"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="grind_menu_model_search_view" model="ir.ui.view">
+            <field name="name">grind_menu.model.search</field>
+            <field name="model">grind_menu.model</field>
+            <field name="arch" type="xml">
+                <search string="Grind Menu">
+                    <field name="menu_code"/>
+                    <field name="name"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="grind_menu_model_act_window" model="ir.actions.act_window">
+            <field name="name">Grind Menu</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">grind_menu.model</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Enjoy seamless management of Grind Menus
+                </p>
+                <p>
+                    Click new to add a new menu.
+                </p>
+            </field>
+        </record>
+
+        <menuitem name="Grind Menus" id="grind_menu_model_menu" parent="grind_management_root_menu" action="grind_menu_model_act_window"/>
+
+    </data>
+</odoo>

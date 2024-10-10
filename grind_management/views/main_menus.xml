@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <menuitem name="Grind Management" id="grind_management_root_menu"/>
+    </data>
+</odoo>
