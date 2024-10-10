@@ -29,3 +29,8 @@ class EmployeeSchedules(models.Model):
             except ValueError:
                 raise ValidationError(_('Please renter your time in format of H:M eg 13:00'))
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        res = super(EmployeeSchedules, self).create(vals_list)
+        self.onchange_departure_time()
+        return res
