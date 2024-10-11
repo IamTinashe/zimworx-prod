@@ -37,6 +37,6 @@ class AccountMoveInherit(models.Model):
             if missing_fields:
                 fields_str = ", ".join(missing_fields)  # Create a comma-separated string of missing fields
                 raise UserError(
-                    f"Please contact the responsible salesperson to update the client card. The following fields are missing:{fields_str}")
+                    f"Please contact the responsible salesperson to update the client card. The following fields are missing: {fields_str}")
         return res
 
