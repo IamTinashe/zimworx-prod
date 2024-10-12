@@ -2,5 +2,6 @@
 <odoo>
     <data>
         <menuitem name="Grind Management" id="grind_management_root_menu"/>
+        <menuitem name="Settings" id="grind_settings_root_menu" parent="grind_management_root_menu" sequence="5"/>
     </data>
 </odoo>

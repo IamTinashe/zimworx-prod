@@ -10,7 +10,7 @@ class GrindInventory(models.Model):
 
     name = fields.Char(string="Item Name", required=True)
     item_code = fields.Char(string="Item Code", required=True, help="Unique identifier for each item")
-    # category_id = fields.Many2one('product.category', string="Category", help="Category the item belongs to")
+    category_id = fields.Many2one('grind_inventory.category', string="Category", help="Category the item belongs to")
     supplier_id = fields.Many2one('res.partner', string="Supplier", help="Supplier of the item")
     currency_id = fields.Many2one('res.currency', string="Currency")
     description = fields.Text(string="Description", help="Description of the item")
@@ -19,7 +19,7 @@ class GrindInventory(models.Model):
     quantity_available = fields.Float(string="Available Quantity", help="Quantity available in stock")
     reorder_level = fields.Float(string="Reorder Level", help="Minimum quantity before reordering is needed")
     reorder_quantity = fields.Float(string="Reorder Quantity", help="Quantity to reorder when stock is low")
-    # uom_id = fields.Many2one('uom.uom', string="Unit of Measure", help="Unit of Measure for the item")
+    grind_inventory_uom_id = fields.Many2one('grind_inventory.uom', string="Unit of Measure", help="Unit of Measure for the item")
     date_added = fields.Date(string="Date Added", default=date.today(),  help="Date the item was added to inventory")
     active = fields.Boolean(string="Active", default=True, help="Is this item currently active?")
     inventory_type = fields.Selection([('shop_product', 'Shop Product'),

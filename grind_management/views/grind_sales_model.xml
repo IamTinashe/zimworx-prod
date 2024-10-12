@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="grind_sales_model_form_view" model="ir.ui.view">
+            <field name="name">grind_sales.model.form</field>
+            <field name="model">grind_sales.model</field>
+            <field name="arch" type="xml">
+                <form string="Grind Sales">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="sale_order_number" placeholder="Sales Order Number"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="hr_employee_id"/>
+                                <field name="sale_product"/>
+                                <field name="product_inventory"/>
+                                <field name="product_menu"/>
+                            </group>
+                            <group>
+                                <field name="sale_date"/>
+                                <field name="total_amount"/>
+                                <field name="salesperson" widget="many2one_avatar_user"/>
+                            </group>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="grind_sales_model_tree_view" model="ir.ui.view">
+            <field name="name">grind_sales.model.tree</field>
+            <field name="model">grind_sales.model</field>
+            <field name="arch" type="xml">
+                <tree string="Grind Sales">
+                    <field name="create_date"/>
+                    <field name="sale_date"/>
+                    <field name="total_amount"/>
+                    <field name="payment_status"/>
+                    <field name="product_inventory"/>
+                    <field name="product_menu"/>
+                    <field name="hr_employee_id"/>
+                    <field name="sale_product"/>
+                    <field name="salesperson" widget="many2one_avatar_user"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="grind_sales_model_search_view" model="ir.ui.view">
+            <field name="name">grind_sales.model.search</field>
+            <field name="model">grind_sales.model</field>
+            <field name="arch" type="xml">
+                <search string="Grind Sales">
+                    <field name="payment_status"/>
+                    <field name="hr_employee_id"/>
+                    <field name="product_inventory"/>
+                    <field name="product_menu"/>
+                    <field name="salesperson" widget="many2one_avatar_user"/>
+                    <group expand="1" string="Group By">
+                        <filter string="Payment Status" name="payment_status" context="{'group_by':'payment_status'}"/>
+                        <filter string="Product Inventory" name="product_inventory" context="{'group_by':'product_inventory'}"/>
+                        <filter string="Product Menu" name="product_menu" context="{'group_by':'product_menu'}"/>
+                        <filter string="Sale Product" name="sale_product" context="{'group_by':'sale_product'}"/>
+                        <filter string="Sale person" name="salesperson" context="{'group_by':'salesperson'}"/>
+                        <filter string="Employee" name="hr_employee_id" context="{'group_by':'hr_employee_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="grind_sales_model_act_window" model="ir.actions.act_window">
+            <field name="name">Grind Sales</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">grind_sales.model</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Enjoy seamless management of Grind Sales
+                </p>
+                <p>
+                    Click new to add a new sale
+                </p>
+            </field>
+        </record>
+
+        <menuitem name="Grind Sales" id="grind_sales_model_menu" parent="grind_management_root_menu" action="grind_sales_model_act_window" sequence="4"/>
+
+    </data>
+</odoo>

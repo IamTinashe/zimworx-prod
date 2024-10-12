@@ -89,7 +89,6 @@
             </field>
         </record>
 
-        <menuitem name="Grind Inventory" id="grind_inventory_menu" parent="grind_management_root_menu" action="grind_inventory_act_window"/>
-
+        <menuitem name="Grind Inventory" id="grind_inventory_menu" parent="grind_management_root_menu" action="grind_inventory_act_window" sequence="1"/>
     </data>
 </odoo>

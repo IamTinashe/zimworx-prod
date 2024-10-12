@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="grind_inventory_category_tree_view" model="ir.ui.view">
+            <field name="name">grind_inventory.category.tree</field>
+            <field name="model">grind_inventory.category</field>
+            <field name="arch" type="xml">
+                <tree string="Grind Inventory Category" editable="top">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="grind_inventory_category_act_window" model="ir.actions.act_window">
+            <field name="name">Grind Inventory Category</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">grind_inventory.category</field>
+            <field name="view_mode">tree</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Experience effortless management of Units of Measurements.
+                </p>
+                <p>
+                    Click 'Create' to add a new units of measurement and streamline your workflow.
+                </p>
+            </field>
+        </record>
+
+        <menuitem name="Grind Inventory Category" id="grind_inventory_category_menu" parent="grind_settings_root_menu" action="grind_inventory_category_act_window" sequence="1"/>
+
+    </data>
+</odoo>

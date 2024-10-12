@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!--THIS IS A COPY AND PASTE OF THE ORIGINAL HR EMPLOYEE AND CUSTOMISED FOR GRIND MANAG-->
+        <record id="inherit_employess_view_employee_form_grind" model="ir.ui.view">
+            <field name="name">hr.employee.form</field>
+            <field name="model">hr.employee</field>
+            <field name="arch" type="xml">
+                <form string="Employee" js_class="hr_employee_form" class='o_employee_form'>
+                    <field name="active" invisible="1"/>
+                    <field name="user_id" invisible="1"/>
+                    <field name="user_partner_id" invisible="1"/>
+                    <field name="hr_presence_state" invisible="1"/>
+                    <field name="hr_icon_display" invisible="1"/>
+                    <field name="image_128" invisible="1" />
+                    <field name="company_id" invisible="1"/>
+                    <field name="last_activity_time" invisible="1"/>
+                    <field name="last_activity" invisible="1"/>
+<!--                    <header>-->
+<!--                    </header>-->
+                    <sheet>
+                        <div name="button_box" class="oe_button_box">
+                        </div>
+                        <widget name="web_ribbon" title="Archived" bg_color="bg-danger" attrs="{'invisible': [('active', '=', True)]}"/>
+                        <field name="avatar_128" invisible="1"/>
+                        <div class="o_employee_avatar">
+<!--                            <field name="qr_code_image" widget='image' class="oe_avatar m-0" options='{"zoom": true, "preview_image":"qr_code_image"}'/>-->
+                            <div id="hr_presence_status" class="d-flex align-items-end fs-6 o_employee_availability">
+                                <small role="img" class="fa fa-fw fa-circle text-success o_button_icon hr_presence align-middle" attrs="{'invisible': [('hr_icon_display', '!=', 'presence_present')]}" aria-label="Present" title="Present"/>
+                                <small role="img" class="fa fa-fw fa-circle-o text-muted o_button_icon hr_presence align-middle" attrs="{'invisible': [('hr_icon_display', '!=', 'presence_absent')]}" aria-label="Absent" title="Absent" name="presence_absent"/>
+                                <small role="img" class="fa fa-fw fa-circle-o text-success o_button_icon hr_presence align-middle" attrs="{'invisible': [('hr_icon_display', '!=', 'presence_absent_active')]}" aria-label="Present but not active" title="Present but not active" name="presence_absent_active"/>
+                                <small role="img" class="fa fa-fw fa-circle text-warning o_button_icon hr_presence align-middle" attrs="{'invisible': [('hr_icon_display', '!=', 'presence_to_define')]}" aria-label="To define" title="To define" name="presence_to_define"/>
+                            </div>
+                        </div>
+                        <div class="oe_title">
+                            <h1 class="d-flex flex-row">
+                                <span class="me-2">
+                                    <widget name="hr_employee_chat" invisible="not context.get('chat_icon')"/>
+                                </span>
+                                <field name="name" placeholder="Employee's Name" required="True" style="font-size: min(4vw, 2.6rem);"/>
+                            </h1>
+                            <h2>
+                                <field name="job_title" placeholder="Job Position" />
+                            </h2>
+                            <field name="category_ids" widget="many2many_tags" options="{'color_field': 'color', 'no_create_edit': True}" placeholder="Tags"  groups="hr.group_hr_user"/>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="account_balance"/>
+                                <field name="grind_password"/>
+                                <field name="mobile_phone" widget="phone"/>
+                                <field name="work_phone" widget="phone"/>
+                            </group>
+                            <group>
+<!--                                <field name="max_seating_capacity"/>-->
+                                <field name="department_id"/>
+                                <field name="job_id"/>
+                                <field name="parent_id"/>
+                                <field name="coach_id"/>
+                                <field name="work_email" widget="email"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                                <field name="company_country_id" invisible="1"/>
+                                <field name="company_country_code" invisible="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page name="Employee Sales">
+                                <field name="employee_sales" >
+                                    <tree editable="top">
+                                         <field name="sale_order_number"/>
+                                         <field name="product_inventory" />
+                                         <field name="product_menu" />
+                                         <field name="sale_date" />
+                                         <field name="currency_id" />
+                                         <field name="total_amount"/>
+                                         <field name="payment_status"/>
+                                         <field name="sale_product"/>
+                                    </tree>
+                                </field>
+                            </page>
+<!--                            <page name="public" string="Work Information">-->
+<!--                                <div id="o_work_employee_container" class="d-lg-flex"> &lt;!&ndash; These two div are used to position org_chart &ndash;&gt;-->
+<!--                                    <div id="o_work_employee_main" class="flex-grow-1">-->
+<!--                                        <group string="Location">-->
+<!--                                            <field name="address_id"-->
+<!--                                                context="{'show_address': 1}"-->
+<!--                                                options='{"always_reload": True, "highlight_first_line": True}'/>-->
+<!--                                            <field name="work_location_id" context="{'default_address_id': address_id}" />-->
+<!--                                        </group>-->
+<!--                                        <group name="managers" string="Approvers" class="hide-group-if-empty" invisible="1">-->
+<!--                                            &lt;!&ndash; is overridden in other hr related modules &ndash;&gt;-->
+<!--                                        </group>-->
+<!--                                        <group name="departure" string="Departure" attrs="{'invisible': [('active', '=', True)]}">-->
+<!--                                            <field name="departure_reason_id" options="{'no_edit': True, 'no_create': True, 'no_open': True}"/>-->
+<!--                                            <field name="departure_description"/>-->
+<!--                                            <field name="departure_date"/>-->
+<!--                                        </group>-->
+<!--                                        <group string="Schedule">-->
+<!--                                            <field name="resource_calendar_id" required="1"/>-->
+<!--                                            <field name="id" invisible="1"/>-->
+<!--                                            <field name="tz" attrs="{'required': [('id', '!=', False)]}"/>-->
+<!--                                        </group>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </page>-->
+<!--                            <page name="personal_information" string="Private Information" groups="hr.group_hr_user">-->
+<!--                                <group>-->
+<!--                                    <group string="Private Contact">-->
+<!--                                        <field name="address_home_id"-->
+<!--                                            context="{-->
+<!--                                                'show_address': 1,-->
+<!--                                                'default_type': 'private',-->
+<!--                                                'form_view_ref': 'base.res_partner_view_form_private'}"-->
+<!--                                            options='{"always_reload": True, "highlight_first_line": True}'/>-->
+<!--                                        <field name="private_email" string="Email"/>-->
+<!--                                        <field name="phone" string="Phone" readonly="True"/>-->
+<!--                                        <field name="bank_account_id" context="{'default_partner_id': address_home_id}"/>-->
+<!--                                        <field name="lang" string="Language"/>-->
+<!--                                        <label for="km_home_work"/>-->
+<!--                                        <div class="o_row" name="div_km_home_work">-->
+<!--                                            <field name="km_home_work" class="o_hr_narrow_field"/>-->
+<!--                                            <span>Km</span>-->
+<!--                                        </div>-->
+<!--                                    </group>-->
+<!--                                    <group string="Family Status">-->
+<!--                                        <field name="marital"/>-->
+<!--                                        <field name="spouse_complete_name" attrs="{'invisible': [('marital', 'not in', ['married', 'cohabitant'])]}"/>-->
+<!--                                        <field name="spouse_birthdate" attrs="{'invisible': [('marital', 'not in', ['married', 'cohabitant'])]}"/>-->
+<!--                                        <field name="children"/>-->
+<!--                                        <separator name="emergency" string="Emergency"/>-->
+<!--                                        <field name="emergency_contact"/>-->
+<!--                                        <field name="emergency_phone" class="o_force_ltr"/>-->
+<!--                                    </group>-->
+<!--                                    <group string="Education">-->
+<!--                                        <field name="certificate"/>-->
+<!--                                        <field name="study_field"/>-->
+<!--                                        <field name="study_school"/>-->
+<!--                                        <separator name="has_work_permit" string="Work Permit"/>-->
+<!--                                        <field name="visa_no"/>-->
+<!--                                        <field name="permit_no"/>-->
+<!--                                        <field name="visa_expire"/>-->
+<!--                                        <field name="work_permit_expiration_date"/>-->
+<!--                                        <field name="work_permit_name" invisible="1"/>-->
+<!--                                        <field name="has_work_permit" widget="work_permit_upload" filename="work_permit_name"/>-->
+<!--                                    </group>-->
+<!--                                    <group string="Citizenship">-->
+<!--                                        <field name="country_id" options='{"no_open": True, "no_create": True}'/>-->
+<!--                                        <field name="identification_id"/>-->
+<!--                                        <field name="passport_id"/>-->
+<!--                                        <field name="gender"/>-->
+<!--                                        <field name="birthday"/>-->
+<!--                                        <field name="place_of_birth"/>-->
+<!--                                        <field name="country_of_birth"/>-->
+<!--                                    </group>-->
+<!--                                </group>-->
+<!--                            </page>-->
+<!--                            <page name="hr_settings" string="HR Settings" groups="hr.group_hr_user">-->
+<!--                                <group>-->
+<!--                                    <group string='Status' name="active_group">-->
+<!--                                        <field name="employee_type"/>-->
+<!--                                        <field name="user_id" string="Related User" domain="[('share', '=', False)]" context="{'allow_create_employee': False, 'default_create_employee': False}"/>-->
+<!--                                    </group>-->
+<!--                                    <group string="Attendance/Point of Sale" name="identification_group">-->
+<!--                                        <field name="pin" string="PIN Code"/>-->
+<!--                                        <label for="barcode"/>-->
+<!--                                        <div class="o_row">-->
+<!--                                            <field name="barcode"/>-->
+<!--                                            <button string="Generate" class="btn btn-link" type="object" name="generate_random_barcode" attrs="{'invisible': [('barcode', '!=', False)]}"/>-->
+<!--                                            <button name="%(hr.hr_employee_print_badge)d" string="Print Badge" class="btn btn-link" type="action" attrs="{'invisible': [('barcode', '=', False)]}"/>-->
+<!--                                        </div>-->
+<!--                                    </group>-->
+<!--                                    <group string='Payroll' name="payroll_group" invisible="1">-->
+<!--                                    </group>-->
+<!--                                    <group name="application_group" string="Application Settings" invisible="1"/>-->
+<!--                                </group>-->
+<!--                            </page>-->
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+<!--                        <field name="message_follower_ids" groups="base.group_user" options="{'post_refresh': 'recipients'}"/>-->
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="inherit_open_view_grind_management" model="ir.actions.act_window">
+            <field name="name">Employees Management</field>
+            <field name="res_model">hr.employee</field>
+            <field name="view_mode">kanban,tree,form,activity</field>
+            <field name="context">{'chat_icon': True}</field>
+            <field name="view_id" eval="False"/>
+             <field name="view_ids" eval="[(5, 0, 0),
+                    (0, 0, {'view_mode': 'tree', 'view_id': ref('hr.view_employee_tree')}),
+                    (0, 0, {'view_mode': 'kanban', 'view_id': ref('hr.hr_kanban_view_employees')}),
+                    (0, 0, {'view_mode': 'form', 'view_id': ref('inherit_employess_view_employee_form_grind')})]"/>
+            <field name="search_view_id" ref="hr.view_employee_filter"/>
+            <field name="help" type="html">
+             <p class="o_view_nocontent_smiling_face">
+               Add a new employee
+             </p><p>
+               With just a quick glance on the Odoo employee screen, you
+               can easily find all the information you need for each person;
+               contact data, job position, availability, etc.
+             </p>
+            </field>
+        </record>
+
+        <menuitem name="Employees" id="grind_employees_root_menu" parent="grind_management_root_menu" action="inherit_open_view_grind_management" sequence="3"/>
+    </data>
+</odoo>
