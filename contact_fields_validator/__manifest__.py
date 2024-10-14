@@ -10,7 +10,7 @@
     'category': 'Customization',
     'author': 'ZimWorX',
     'website': 'https://zimworx.com',
-    'depends': ['account', 'contacts', 'sale'],  # Added 'contacts' dependency for partner models
+    'depends': ['account', 'contacts', 'sale', 'crm'],  # Added 'contacts' dependency for partner models
     'data': [
         # 'security/ir.model.access.csv',  # Uncomment if you need custom security rules
         # 'views/partner_views.xml',        # Uncomment if you are creating custom views for partner records

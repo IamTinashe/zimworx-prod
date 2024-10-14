@@ -1,4 +1,4 @@
-from odoo import models, fields
+from odoo import models
 from odoo.exceptions import UserError
 
 class PartnerFieldValidator:
@@ -17,7 +17,7 @@ class PartnerFieldValidator:
             "Business Type or Specialty": self.partner.x_studio_bus_type_or_specialty,
             "Country": self.partner.country_id,
             "State": self.partner.state_id,
-            "CSP": self.partner.x_studio_arm,
+            "ARM": self.partner.x_studio_arm,
             "Customer Group": self.partner.x_studio_customer_group,
         }
 
@@ -28,5 +28,6 @@ class PartnerFieldValidator:
         if self.missing_fields:
             fields_str = ", ".join(self.missing_fields)
             raise UserError(
-                f"Please contact the responsible salesperson to update the client card. The following fields are missing: {fields_str}"
+                f"Please contact the responsible salesperson to update the client card before you make changes. Click the Office Name or Customer Name to update. The following client fields are "
+                f"missing: {fields_str}"
             )
