@@ -12,7 +12,7 @@ class GrindInventoryMovement(models.Model):
     grind_sales = fields.Many2one('grind_sales.model', string='Grind Sales')
     movement_date = fields.Datetime(string='Movement Date', default=datetime.now(), required=True)
     quantity = fields.Float(string='Quantity', required=True)
-    grind_inventory_uom_id = fields.Many2one('grind_inventory.uom', related='product_id.grind_inventory_uom_id',string='Unit of Measure', required=True)
+    grind_inventory_uom_id = fields.Many2one('grind_inventory.uom', related='grind_inventory_id.grind_inventory_uom_id',string='Unit of Measure', required=True)
     movement_type = fields.Selection([
         ('stock_in', 'Stock In'),
         ('sell', 'Sell Out'),

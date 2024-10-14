@@ -15,7 +15,7 @@ class GrindInventory(models.Model):
     category_id = fields.Many2one('grind_inventory.category', string="Category", help="Category the item belongs to")
     supplier_id = fields.Many2one('grind_inventory.supplier', string="Supplier", help="Supplier of the item")
     currency_id = fields.Many2one('res.currency', string="Currency")
-    grind_inventory_movement_ids = fields.One2many('grind_inventory.movement', 'product_id', string="Grind Movement")
+    grind_inventory_movement_ids = fields.One2many('grind_inventory.movement', 'grind_inventory_id', string="Grind Movement")
     description = fields.Text(string="Description", help="Description of the item")
     cost_price = fields.Monetary(string="Cost Price", required=True, help="Purchase price of the item")
     sale_price = fields.Monetary(string="Sale Price", required=True, help="Selling price of the item")
