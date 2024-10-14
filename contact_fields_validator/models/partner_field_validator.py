@@ -8,16 +8,12 @@ class PartnerFieldValidator:
 
     def validate_fields(self):
         field_checks = {
-            "Phone Number": self.partner.phone,
             "Email": self.partner.email,
             "Number of Locations": self.partner.x_studio_number_of_locations,
-            "Roll On Date": self.partner.x_studio_roll_on_date,
             "DSO or Single": self.partner.x_studio_dso_or_single,
-            "RCM Program": self.partner.x_studio_rcm_program,
             "Business Type or Specialty": self.partner.x_studio_bus_type_or_specialty,
             "Country": self.partner.country_id,
             "State": self.partner.state_id,
-            "ARM": self.partner.x_studio_arm,
             "Customer Group": self.partner.x_studio_customer_group,
         }
 
