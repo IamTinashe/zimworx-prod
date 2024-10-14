@@ -14,7 +14,7 @@ class PartnerFieldValidator:
             "Business Type or Specialty": self.partner.x_studio_bus_type_or_specialty,
             "Country": self.partner.country_id,
             "State": self.partner.state_id,
-            "Customer Group": self.partner.x_studio_customer_group,
+            "Customer Group": self.partner.x_studio_customer_stage,
         }
 
         for field_name, field_value in field_checks.items():
