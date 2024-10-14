@@ -29,7 +29,5 @@ class PartnerFieldValidator:
             fields_str = ", ".join(self.missing_fields)
             raise UserError(
                 f"The information on the client card is incomplete. Please contact the responsible salesperson to "
-                f"update the client card before you make changes. Click the Office Name or Customer Name to update. "
-                f"The following client fields are"
-                f"missing: {fields_str}"
+                f"update the client card before you make changes. The following fields are missing or inaccurate: {fields_str}"
             )
