@@ -7,6 +7,9 @@
             <field name="model">grind_inventory.model</field>
             <field name="arch" type="xml">
                 <form string="Grind Inventory">
+                    <header>
+                        <button name="%(action_grind_inventory_movement_wizard)d" string="Add Movements" type="action"  class="oe_highlight" help="For manual adding of movements in either stock in, sell out or balance"/>
+                    </header>
                     <sheet>
                         <div class="oe_title">
                             <h1>
@@ -19,13 +22,14 @@
                                 <field name="supplier_id"/>
                                 <field name="inventory_type"/>
                                 <field name="cost_price"/>
-                                <field name="sale_price"/>
+                                <field name="sale_price"  attrs="{'invisible': [('inventory_type', '=', 'ingredient')]}"/>
                                 <field name="currency_id" invisible="1"/>
                                 <field name="quantity_available"/>
+                                <field name="grind_inventory_uom_id"/>
 <!--                                <field name="uom_id"/>-->
                             </group>
                             <group>
-                                <field name="reorder_level"/>
+                                <field name="category_id"/>
                                 <field name="reorder_quantity"/>
 <!--                                <field name="category_id"/>-->
                                 <field name="date_added"/>
@@ -33,6 +37,22 @@
                                 <field name="description"/>
                             </group>
                         </group>
+                        <notebook>
+                            <page name="Inventory Movements">
+                                <field name="grind_inventory_movement_ids" readonly="1" >
+                                    <tree editable="top">
+                                         <field name="name"/>
+                                         <field name="grind_sales" />
+                                         <field name="movement_date" />
+                                         <field name="quantity" />
+                                         <field name="grind_inventory_uom_id" />
+                                         <field name="movement_type"/>
+                                         <field name="responsible_user_id" widget="many2one_avatar_user" />
+                                         <field name="state"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
                     </sheet>
                     <div class="oe_chatter">
                         <field name="message_follower_ids"/>

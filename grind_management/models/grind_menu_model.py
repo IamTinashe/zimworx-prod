@@ -1,5 +1,5 @@
 from odoo import models, fields
-from datetime import date
+from datetime import date, datetime
 
 class GrindMenu(models.Model):
     _name = 'grind_menu.model'
@@ -14,5 +14,5 @@ class GrindMenu(models.Model):
     description = fields.Text(string="Description")
     currency_id = fields.Many2one('res.currency', string="Currency")
     active = fields.Boolean(string="Active", default=True)
-    date_added = fields.Date(string="Date Added", default=date.today(),  help="Date the item was added to menu")
+    date_added = fields.Date(string="Date Added", default=datetime.now(),  help="Date the item was added to menu")
 

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="grind_inventory_supplier_form_view" model="ir.ui.view">
+            <field name="name">grind_inventory.supplier.form</field>
+            <field name="model">grind_inventory.supplier</field>
+            <field name="arch" type="xml">
+                <form string="Grind Inventory Supplier">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" placeholder="Name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="contact_person"/>
+                                <field name="phone"/>
+                                <field name="email"/>
+                                <field name="city"/>
+                            </group>
+                            <group>
+                                <field name="delivery_terms"/>
+                                <field name="payment_terms"/>
+                                <field name="active"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="grind_inventory_supplier_tree_view" model="ir.ui.view">
+            <field name="name">grind_inventory.supplier.tree</field>
+            <field name="model">grind_inventory.supplier</field>
+            <field name="arch" type="xml">
+                <tree string="Grind Inventory Supplier">
+                    <field name="name"/>
+                    <field name="contact_person"/>
+                    <field name="phone"/>
+                    <field name="email"/>
+                    <field name="city"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="grind_inventory_supplier_search_view" model="ir.ui.view">
+            <field name="name">grind_inventory.supplier.search</field>
+            <field name="model">grind_inventory.supplier</field>
+            <field name="arch" type="xml">
+                <search string="Grind Inventory Supplier">
+                    <field name="name"/>
+                    <field name="contact_person"/>
+                    <field name="phone"/>
+                    <field name="email"/>
+                    <field name="city"/>
+                    <group expand="1" string="Group By">
+                        <filter string="City" name="city" context="{'group_by':'city'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="grind_inventory_supplier_act_window" model="ir.actions.act_window">
+            <field name="name">Grind Inventory Supplier</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">grind_inventory.supplier</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+               <p class="o_view_nocontent_smiling_face">
+                    Experience effortless management of Grind Inventory Supplier.
+                </p>
+                <p>
+                    Click 'Create' to add a new supplier and streamline your workflow.
+                </p>
+            </field>
+        </record>
+
+        <menuitem name="Grind Inventory Supplier" id="grind_inventory_supplier_menu" parent="grind_settings_root_menu" action="grind_inventory_supplier_act_window"/>
+
+    </data>
+</odoo>

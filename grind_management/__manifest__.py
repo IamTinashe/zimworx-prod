@@ -17,6 +17,7 @@
     'data': [
         'security/ir.model.access.csv',
         'data/data.xml',
+        'wizards/grind_inventory_movement_wizard.xml',
         'views/main_menus.xml',
         'views/grind_inventory_model.xml',
         'views/grind_menu_model.xml',
@@ -24,6 +25,7 @@
         'views/grind_sales_model.xml',
         'views/grind_inventory_category.xml',
         'views/grind_inventory_uom.xml',
+        'views/grind_inventory_supplier.xml',
     ],
     'installable': True,
     'application': True,

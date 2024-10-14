@@ -10,5 +10,13 @@
             <field name="company_id" eval="False"/>
         </record>
 
+        <record id="grind_inventory_name_sequence" model="ir.sequence">
+            <field name="name">Grind Inventory Name</field>
+            <field name="code">grind_inventory_name.seq</field>
+            <field name="prefix">MOVEMENT/%(year)s/%(month)s/</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
     </data>
 </odoo>

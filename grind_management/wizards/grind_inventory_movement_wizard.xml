@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_grind_inventory_movement_wizard_form" model="ir.ui.view">
+            <field name="name">grind.inventory.movement.wizard.form</field>
+            <field name="model">grind_inventory_movement.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Add Inventory Movement">
+                    <group>
+                        <group>
+                            <field name="grind_inventory_id" invisible="1"/>
+                            <field name="movement_type"/>
+                            <field name="quantity"/>
+                        </group>
+                        <group>
+                            <field name="grind_inventory_uom_id" readonly="1"/>
+                            <field name="movement_date" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <footer>
+                        <button string="Add Movement" type="object" name="action_add_movement" class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_grind_inventory_movement_wizard" model="ir.actions.act_window">
+            <field name="name">Add Inventory Movement</field>
+            <field name="res_model">grind_inventory_movement.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_grind_inventory_movement_wizard_form"/>
+            <field name="target">new</field>
+        </record>
+    </data>
+</odoo>
