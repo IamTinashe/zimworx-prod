@@ -21,7 +21,7 @@ class PartnerFieldValidator:
             if not field_value:
                 self.missing_fields.append(field_name)
 
-        if self.missing_fields:
+        if self.missing_fields and self.partner.x_studio_primary_business_relationship == 'Prospect/Customer':
             fields_str = ", ".join(self.missing_fields)
             raise UserError(
                 f"The information on the client card is incomplete. Please contact the responsible salesperson to "
