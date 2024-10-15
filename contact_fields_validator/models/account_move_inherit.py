@@ -11,6 +11,6 @@ class AccountMoveInherit(models.Model):
         return res
 
     def _check_missing_partner_fields(self):
-        if self.partner_id.x_studio_primary_business_relationship == 'Prospect/Customer':
+        if self.partner.x_studio_primary_business_relationship == 'Prospect/Customer':
             validator = PartnerFieldValidator(self.partner_id)
             validator.validate_fields()  # Call the validate method
